@@ -1,0 +1,82 @@
+/* src/styles/Navbar.module.css */
+
+.navbar {
+  /* background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); */
+  box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.4);
+  color: black;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+  position: sticky;
+  top: 0;
+}
+
+.links {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  left: 0;
+  bottom: -4px;
+  background: #00ff88;
+  transition: width 0.3s ease;
+}
+
+.link:hover {
+  color: #00ff88;
+}
+
+.link:hover::after {
+  width: 100%;
+}
+
+.linkBtn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.linkBtn::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  left: 0;
+  bottom: -4px;
+  background: #00ff88;
+  transition: width 0.3s ease;
+}
+
+.linkBtn:hover {
+  color: #00ff88;
+}
+.linkBtn svg{
+  font-size: 1.5rem;
+}
+.linkBtn:hover::after {
+  width: 100%;
+}

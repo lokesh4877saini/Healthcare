@@ -1,0 +1,92 @@
+/*  CONTAINER: Glassmorphism card */
+.container {
+    position: relative;
+    max-width: 500px;
+    margin: 5rem auto;
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  /*  Floating animated background blobs */
+  .container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 25% 25%, #0070f3 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #00bfff 0%, transparent 50%);
+    animation: blob 20s linear infinite;
+    z-index: -1;
+  }
+  
+  @keyframes blob {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .heading {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .label {
+    margin: 0.5rem 0 0.2rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  
+  .input {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.4);
+    color: #000;
+  }
+  
+  .input:focus {
+    outline: 2px solid #0070f3;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  
+  .submitButton {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #0070f3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .submitButton:hover {
+    background: #005bb5;
+  }
+  
+  .message {
+    margin-top: 1rem;
+    color: #00ff88;
+    font-weight: 600;
+    text-align: center;
+  }
+  

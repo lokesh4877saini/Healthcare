@@ -1,0 +1,206 @@
+/*  CONTAINER: Glassmorphism card */
+.container {
+    position: relative;
+    margin: 5rem auto;
+    max-width: 750px;
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  /*  Floating animated background blobs */
+  .container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 25% 25%, #0070f3 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #00bfff 0%, transparent 50%);
+    animation: blob 20s linear infinite;
+    z-index: -1;
+  }
+  
+  @keyframes blob {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(180deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+.page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .heading {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 2rem;
+  }
+  
+  .loading,
+  .error,
+  .empty {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  .error {
+    color: #e53e3e;
+  }
+  
+  .doctorGrid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  
+  .doctorCard {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  
+  .doctorName {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.25rem 0;
+  }
+  
+  .specialization {
+    font-size: 1rem;
+    color: #3182ce;
+    margin-bottom: 1rem;
+  }
+  
+  .bookingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  
+  .bookingCard {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .bookingCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .details p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: #4a5568;
+  }
+  
+  .details span {
+    font-weight: 600;
+  }
+  
+  .timestamp {
+    font-size: 0.8rem;
+    color: #a0aec0;
+    margin-top: 0.5rem;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  
+  .buttonPrimary {
+    background-color: #3182ce;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+  }
+  
+  .buttonPrimary:hover {
+    background-color: #2b6cb0;
+  }
+  
+  .buttonDanger {
+    background-color: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+  }
+  
+  .buttonDanger:hover {
+    background-color: #c53030;
+  }
+  
+  /*  Responsive tweaks for very small screens */
+  @media (max-width: 768px) {
+    .page {
+      padding: 1rem;
+    }
+  
+    .heading {
+      font-size: 2rem;
+    }
+  
+    .doctorCard {
+      padding: 1rem;
+    }
+  
+    .buttonGroup {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .buttonPrimary,
+    .buttonDanger {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .container {
+        padding: 0.2rem;
+    }
+    .heading {
+      font-size: 1.75rem;
+    }
+  
+    .doctorName {
+      font-size: 1.25rem;
+    }
+  }
+  
