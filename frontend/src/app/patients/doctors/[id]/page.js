@@ -1,9 +1,12 @@
 // src/app/doctors/[id]/page.js
 import { fetcher } from '@/lib/api';
 import styles from '@/styles/DoctorDetailPage.module.css';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
+import LoggedOutNotice from '@/components/LoggedOutNotice';
 export default async function DoctorDetailPage({ params }) {
-  const { id } = params;
+  const user = await getCurrentUser();
+  if(!user) return <LoggedOutNotice/>
+  const { id } = await params;
   let doctor;
   try {
     const data = await fetcher(`doctor/${id}`);

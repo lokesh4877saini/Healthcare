@@ -1,34 +1,20 @@
-'use client';
+// src/app/profile/me/page.js
+import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/getCurrentUser";
+import ProfileContent from "@/components/ProfileContent";
+import LoggedOutNotice from "@/components/LoggedOutNotice";
 
-import { useAuth } from '@/hooks/useAuth';
-import styles from '@/styles/ProfilePage.module.css';
-
-export default function ProfilePage() {
-  const { user } = useAuth();
-
+export default async function ProfilePage() {
+  const user = await getCurrentUser();
   if (!user) {
-    return (
-      <main className={styles.container}>
-        <h1 className={styles.heading}>Profile</h1>
-        <p className={styles.message}>You are not logged in.</p>
-      </main>
-    );
+    return <LoggedOutNotice />;
   }
 
   return (
-    <main className={styles.container}>
-      <h1 className={styles.heading}>My Profile</h1>
-      <div className={styles.card}>
-        <p><strong>Name:</strong> {user.name}</p>
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Role:</strong> {user.role}</p>
-        {user.role === 'doctor' && (
-          <>
-            <p><strong>Specialization:</strong> {user.specialization || 'N/A'}</p>
-            <p><strong>Phone:</strong> {user.phone || 'N/A'}</p>
-          </>
-        )}
-      </div>
-    </main>
+    <section>
+      <Suspense fallback={<h1>Loading your profile...</h1>}>
+        <ProfileContent user={user} />
+      </Suspense>
+     </section>
   );
 }

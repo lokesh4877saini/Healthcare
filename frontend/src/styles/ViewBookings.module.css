@@ -13,31 +13,6 @@
     z-index: 1;
   }
   
-  /*  Floating animated background blobs */
-  .container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 25% 25%, #0070f3 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, #00bfff 0%, transparent 50%);
-    animation: blob 20s linear infinite;
-    z-index: -1;
-  }
-  
-  @keyframes blob {
-    0% {
-      transform: rotate(0deg);
-    }
-    50% {
-      transform: rotate(180deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
   
 .page {
     max-width: 1200px;
@@ -164,6 +139,39 @@
   .buttonDanger:hover {
     background-color: #c53030;
   }
+  .emptyState {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  
+  .emptyState h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .emptyState p {
+    font-size: 1rem;
+    color: #666;
+    margin: 0.3rem 0;
+  }
+  
+  .ctaButton {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+  
+  .ctaButton:hover {
+    background-color: #005bb5;
+  }
+  
   
   /*  Responsive tweaks for very small screens */
   @media (max-width: 768px) {
@@ -196,7 +204,10 @@
         padding: 0.2rem;
     }
     .heading {
-      font-size: 1.75rem;
+      font-size: medium;
+    }
+    .emptyState h2 {
+      font-size: large;
     }
   
     .doctorName {
