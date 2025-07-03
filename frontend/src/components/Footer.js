@@ -8,7 +8,7 @@ export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.left}>
-        <input type="email" className={styles.links} placeholder={"Try Health care app for free"}/>
+        <input type="email" className={styles.links} placeholder={"Try Health care app"}/>
         <button>Subscribe</button>
       </div>
 

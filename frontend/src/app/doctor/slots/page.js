@@ -2,31 +2,34 @@
 
 import DatePicker from 'react-datepicker';
 import { MdDeleteForever } from "react-icons/md";
-// import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
+import LoggedOutNotice from '@/components/LoggedOutNotice';
 import { formatDate, formatTime24to12 } from '@/lib/formatters';
 import { MdAdd } from "react-icons/md";
 import { fetcher } from '@/lib/api';
+import { RiDeleteBinLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from '@/styles/DoctorSlotsPage.module.css';
 import { useRouter } from 'next/navigation';
 
 export default function DoctorSlotsPage() {
+    const {user} = useAuth();
     const router = useRouter();
     const [date, setDate] = useState(new Date());
     const [timeSlots, setTimeSlots] = useState(['']);
     const [message, setMessage] = useState('');
     const [availableSlots, setAvailableSlots] = useState([]);
-
     useEffect(() => {
-        async function fetchSlots() {
-            const res = await fetcher('doctor/slots')
-            if (res.success) {
-                setAvailableSlots(res.availableSlots);
-            }
-        }
         fetchSlots();
     }, []);
+    async function fetchSlots() {
+        const res = await fetcher('doctor/slots')
+        if (res.success) {
+            setAvailableSlots(res.availableSlots);
+        }
+    }
+    if(!user) return <LoggedOutNotice/>
     const handleTimeChange = (index, value) => {
         const newSlots = [...timeSlots];
         newSlots[index] = value;
@@ -57,7 +60,7 @@ export default function DoctorSlotsPage() {
             // Simulate success
             if (res.success) {
                 setMessage('Slots updated successful!');
-                router.refresh();
+                await fetchSlots();
             } else {
                 setMessage(res.message || "failed Slots updated");
             }
@@ -79,11 +82,9 @@ export default function DoctorSlotsPage() {
                 },
                 body: JSON.stringify({ date }),
             });
-            console.log(res.message);
-            if(res.success){
-                router.refresh();
+            if (res.success) {
+                await fetchSlots();
             }
-            // Optional: Refetch slots or remove from state
         } catch (error) {
             console.error(error);
         }
@@ -99,11 +100,9 @@ export default function DoctorSlotsPage() {
                 },
                 body: JSON.stringify({ date, time }),
             });
-            console.log(res.message);
-            if(res.success){
-                router.refresh();
+            if (res.success) {
+                await fetchSlots();
             }
-            // Optional: Refetch slots or remove from state
         } catch (error) {
             console.error(error);
         }
@@ -176,18 +175,89 @@ export default function DoctorSlotsPage() {
                                 {availableSlots.map((slot, index) => (
                                     <tr key={index}>
                                         <td
-                                            style={{ cursor: 'pointer', color: '#0070f3' }}
+                                            className="date-cell"
                                             onClick={() => handleDeleteDate(slot.date)}
-                                        >{formatDate(slot.date)}</td>
+                                        >
+                                            <span className="date-content">{formatDate(slot.date)}</span>
+                                            <div className="overlay">
+                                                <RiDeleteBinLine className="icon" />
+                                                <span className="overlay-text">Delete entire date slot</span>
+                                            </div>
+                                        </td>
+
                                         <td>
                                             {slot.time.map((time, idx) => (
-                                                <span key={idx}
-                                                    style={{ marginRight: '8px', cursor: 'pointer', color: '#ff3b30' }}
-                                                    onClick={() => handleDeleteTime(slot.date, time)}>
+                                                <span
+                                                    key={idx}
+                                                    className="time-span"
+                                                    onClick={() => handleDeleteTime(slot.date, time)}
+                                                >
                                                     {formatTime24to12(time)}
+                                                    <div className="overlay">
+                                                        <RiDeleteBinLine className="icon" />
+                                                    </div>
                                                 </span>
                                             ))}
                                         </td>
+
+                                        <style jsx>{`.date-cell {
+                                                        position: relative;
+                                                        cursor: pointer;
+                                                        padding: 8px;
+                                                    }
+
+                                                    .date-content {
+                                                        position: relative;
+                                                        z-index: 1;
+                                                    }
+
+                                                    .time-span {
+                                                        position: relative;
+                                                        margin-right: 8px;
+                                                        cursor: pointer;
+                                                        display: inline-block;
+                                                    }
+
+                                                    .overlay {
+                                                        position: absolute;
+                                                        top: 50%;
+                                                        left: 50%;
+                                                        transform: translate(-50%, -50%);
+                                                        background: rgba(0, 0, 0, 0.7);
+                                                        color: #fff;
+                                                        padding:2px 4px;
+                                                        justify-content:center;
+                                                        border-radius: 4px;
+                                                        display: flex;
+                                                        width:80%;
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                        opacity: 0;
+                                                        pointer-events: none;
+                                                        transition: opacity 0.1s ease;
+                                                        z-index: 2;
+                                                        font-size: 12px;
+                                                    }
+
+                                                    .icon {
+                                                        font-size: 16px;
+                                                    }
+
+                                                    .overlay-text {
+                                                        font-size: 9px;
+                                                    }
+
+                                                    .date-cell:hover .overlay {
+                                                        opacity: 1;
+                                                        pointer-events: auto;
+                                                    }
+
+                                                    .time-span:hover .overlay {
+                                                        opacity: 1;
+                                                        pointer-events: auto;
+                                                    }
+                                                    `}</style>
+
                                     </tr>
                                 ))}
                             </tbody>

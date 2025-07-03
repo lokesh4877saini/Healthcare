@@ -28,12 +28,12 @@ export default function HomePage() {
         <div className={styles.overlay}>
           <h1 className={styles.title}>Welcome to the Healthcare App</h1>
           <p className={styles.subtitle}>Book appointments with trusted doctors, anytime.</p>
-          <Link href="#Doctor" className={styles.cta}>Book Appointment</Link>
+          <Link href="#banner" className={styles.cta}>Book Appointment</Link>
         </div>
       </section>
 
       <section className={styles.featuredSection}>
-        <h2 id="Doctor" className={styles.sectionTitle}>Meet Our Trusted Doctors</h2>
+        <h2 id="banner" className={styles.sectionTitle}>Meet Our Trusted Doctors</h2>
         <Swiper
           modules={[Autoplay, Pagination]}
           slidesPerView={1}
@@ -43,7 +43,7 @@ export default function HomePage() {
           pagination={{ clickable: true }}
           className={styles.swiper}
           breakpoints={{
-            768: { slidesPerView: 2 },
+            768: { slidesPerView: 1 },
             1024: { slidesPerView: 3 }
           }}
         >

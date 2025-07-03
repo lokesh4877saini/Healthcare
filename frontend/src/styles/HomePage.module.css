@@ -21,7 +21,7 @@
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     padding: 2rem 3rem;
     border-radius: 16px;
-    max-width: 800px;
+    width: 80%;
     overflow: hidden;
   }
   
@@ -29,7 +29,7 @@
     content: "";
     position: absolute;
     top: -50%;
-    left: -150%;
+    left: -50%;
     width: 300%;
     height: 200%;
     background: linear-gradient(
@@ -84,7 +84,8 @@
   .featuredSection {
     background: #f9f9f9;
     padding: 4rem 2rem;
-    margin-top: -2rem;
+    margin-top: -4rem;
+    border-radius: 20px;
     text-align: center;
   }
   
@@ -101,8 +102,20 @@
   .card {
     background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
     border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 200px;
     padding: 2rem;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     text-align: left;
+  }
+  @media (max-width: 500px) {
+    .overlay {
+      padding: 1rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
   }
   

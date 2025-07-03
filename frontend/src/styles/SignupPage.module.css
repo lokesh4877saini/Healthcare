@@ -100,3 +100,38 @@
   font-weight: 600;
   text-align: center;
 }
+
+.orDivider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  color: white;
+}
+
+.orDivider::before,
+.orDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #0f8;
+}
+
+.registerLink {
+  margin-top: 1rem;
+  display: block;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  background: #0070f3;
+  color: white;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.registerLink:hover {
+  background: #005bb5;
+}
