@@ -9,7 +9,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     border-radius: 16px;
     padding: 1.5rem;
-    width: 350px;
+    width: 400px;
     color: #fff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     overflow: hidden;
@@ -66,4 +66,8 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
   }
-  
+  @media (max-width: 480px) {
+    .card{
+      width: auto;
+    }
+  }

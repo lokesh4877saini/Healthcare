@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box; /* Better sizing */
+  scroll-behavior: smooth;
 }
 body {
     font-family: sans-serif;
@@ -13,9 +14,14 @@ body {
     text-decoration: none;
     margin-right: 1rem;
   }
-  
   main {
     padding: 2rem;
-    background-color: rgb(230, 230, 230);
   }
+  
+  @media (max-width: 500px) {
+    main {
+      padding: 1rem;
+    }
+  }
+  
   

@@ -2,10 +2,14 @@
 import { fetcher } from '@/lib/api';
 import DoctorCard from '@/components/DoctorCard';
 import styles from '@/styles/DoctorsPage.module.css';
+import { getCurrentUser } from '@/lib/getCurrentUser';
+import LoggedOutNotice from '@/components/LoggedOutNotice';
 
 export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 export default async function DoctorsPage() {
+  const user = await getCurrentUser();
+  if(!user) return <LoggedOutNotice/>
   const { doctors } = await fetcher('doctor/lists/all');
   return (
     <section className={styles.page}>

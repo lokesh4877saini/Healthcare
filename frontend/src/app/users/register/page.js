@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { fetcher } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/SignupPage.module.css';
+import Link from 'next/link';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -130,7 +131,12 @@ export default function SignupPage() {
           Register
         </button>
       </form>
-
+      <div className={styles.orDivider}>
+        <span>OR</span>
+      </div>
+      <Link href="/users/login" className={styles.registerLink}>
+        Login existing account
+      </Link>              
       {message && <p className={styles.message}>{message}</p>}
     </main>
 
