@@ -1,0 +1,136 @@
+.floatingChat {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toggleButton {
+  background: #0070f3;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  padding: 15px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background 0.3s ease;
+}
+
+.toggleButton:hover {
+  background: #005bb5;
+}
+
+.chatBox {
+  position: absolute;
+  bottom: 55px;
+  right: 0;
+  width: 300px;
+  max-height: 400px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  margin: 5px 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.user {
+  background: #0070f3;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.ai {
+  background: #0f8;
+  color: #000;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
+.inputArea {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+
+.inputArea input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.inputArea button {
+  background: #0070f3;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.inputArea button:hover {
+  background: #005bb5;
+}
+
+/* ✅ New link buttons for explain_app */
+.links {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linkButton {
+  display: inline-block;
+  background: #0070f3;
+  color: #fff;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 0.3s ease;
+}
+
+.linkButton:hover {
+  background: #005bb5;
+}
