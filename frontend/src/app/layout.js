@@ -3,6 +3,7 @@ import '@/styles/globals.css';
 import { AuthProvider } from '@/context/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FloatingChat from '@/components/FloatingChat';
 
 export const metadata = {
   title: 'Healthcare App',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <Navbar />
           <main>{children}</main>
+          <FloatingChat />
           <Footer/>
         </AuthProvider>
       </body>

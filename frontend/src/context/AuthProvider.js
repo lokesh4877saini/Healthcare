@@ -4,7 +4,6 @@ import { fetcher } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
-
 export function AuthProvider({ children }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
