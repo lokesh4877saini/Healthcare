@@ -48,3 +48,9 @@ root
       ├───lib
       └───styles
 ```
+Development (hot reload for Next.js + backend)
+cd E:\genu\Dekstop\healthcare-app
+docker-compose up --build
+Production (optimized builds, detached)
+docker-compose -f docker-compose.yml up --build -d
+
