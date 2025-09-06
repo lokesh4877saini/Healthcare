@@ -32,7 +32,9 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     router.refresh();
   };
-
+  if (loading) {
+    return <div>Loading...</div>; // or null / spinner
+  }
   return (
     <AuthContext.Provider value={{ user, login, logout,loading }}>
       {children}
