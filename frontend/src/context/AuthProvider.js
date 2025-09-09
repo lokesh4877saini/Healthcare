@@ -4,7 +4,6 @@ import { fetcher } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
-
 export function AuthProvider({ children }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -33,7 +32,9 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     router.refresh();
   };
-
+  if (loading) {
+    return <div>Loading...</div>; // or null / spinner
+  }
   return (
     <AuthContext.Provider value={{ user, login, logout,loading }}>
       {children}
