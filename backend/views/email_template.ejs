@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Password Recovery</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, sans-serif;">
+  
+  <table width="100%" cellpadding="0" cellspacing="0" >
+    <tr>
+      <td align="center">
+        <table width="650" cellpadding="0" cellspacing="0"  style="max-width: 100%; background-color: #ececec; border-radius: 20px; padding: 20px;">
+          <tr>
+            <td>
+              <h2 style="color: #453432; font-family: Georgia, 'Times New Roman', Times, serif;">Dear, <span style="color: tomato;"> <%= name %> !</span></h2>
+              <p style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 30px; font-weight: 700; color: #453432;">
+                We received a request to reset your password for your Ecomm Account.
+              </p>
+              <p style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 30px; font-weight: 700; color: #453432;">
+                <%- message %>
+              </p>
+              <p style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 30px; font-weight: 700; color: #453432;">
+                If you didn’t request this change, please ignore this email. For assistance, contact our support team.
+              </p>
+              <footer>
+                <p style="font-family: Arial, sans-serif; color: #453432;">
+                  Best, <br>
+                  <strong style="color: tomato;">Ecomm Support Team ❤️</strong>
+                </p>
+              </footer>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

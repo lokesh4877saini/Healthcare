@@ -1,0 +1,146 @@
+const Booking = require('../models/booking');
+const User = require('../models/user');
+const ErrorHandler = require('../utils/ErrorHandler');
+const catchAsyncError = require('../middleware/catchAsyncError');
+
+exports.bookAppointment = catchAsyncError(async (req, res, next) => {
+    const { doctorId, date, time } = req.body;
+
+    // Check doctor existence
+    const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
+    if (!doctor) {
+        return next(new ErrorHandler("Doctor not found", 404));
+    }
+
+    // Check if doctor has the slot available
+    const slot = doctor.availableSlots.find(s => s.date === date && s.time.includes(time));
+    if (!slot) {
+        return next(new ErrorHandler("Selected time slot is not available", 400));
+    }
+
+    // Prevent double booking
+    const existing = await Booking.findOne({ doctor: doctorId, date, time });
+    if (existing) {
+        return next(new ErrorHandler("This slot is already booked", 400));
+    }
+
+    const booking = await Booking.create({
+        doctor: doctorId,
+        patient: req.user._id,
+        date,
+        time,
+    });
+
+    // Update doctor’s available slots
+    slot.time = slot.time.filter(t => t !== time); // remove booked time
+    doctor.availableSlots = doctor.availableSlots.map(s => s.date === date ? slot : s);
+    await doctor.save();
+
+    res.status(201).json({
+        success: true,
+        message: "Appointment booked successfully",
+        booking,
+    });
+});
+
+// Doctor's view
+exports.getDoctorAppointments = catchAsyncError(async (req, res, next) => {
+    const bookings = await Booking.find({ doctor: req.user._id }).populate('patient', 'name email');
+    res.status(200).json({ success: true, bookings });
+});
+
+// Patient's view
+exports.getPatientAppointments = catchAsyncError(async (req, res, next) => {
+    const bookings = await Booking.find({ patient: req.user._id }).populate('doctor', 'name specialization');
+    res.status(200).json({ success: true, bookings });
+});
+
+// Cancel Booking
+exports.cancelBooking = catchAsyncError(async (req, res, next) => {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+        return next(new ErrorHandler('Booking not found', 404));
+    }
+
+    // Only the patient who made the booking and doctor can cancel it
+    if (
+        booking.patient.toString() !== req.user._id.toString() &&
+        booking.doctor.toString() !== req.user._id.toString()
+      ) {
+        return next(new ErrorHandler('You are not authorized to cancel this booking', 403));
+      }
+      
+
+    // Restore the time slot to doctor's availability
+    const doctor = await User.findById(booking.doctor);
+
+    const slotDate = doctor.availableSlots.find(slot => slot.date === booking.date);
+    if (slotDate) {
+        slotDate.time.push(booking.time);
+    } else {
+        doctor.availableSlots.push({ date: booking.date, time: [booking.time] });
+    }
+
+    await doctor.save();
+
+    // Delete the booking
+    await booking.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        message: 'Booking cancelled and slot restored.',
+    });
+});
+
+exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
+    const { date, time } = req.body;
+
+    if (!date || !time) {
+        return next(new ErrorHandler("Please provide new 'date' and 'time'", 400));
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+        return next(new ErrorHandler('Booking not found', 404));
+    }
+
+    if (booking.patient.toString() !== req.user._id.toString() && booking.doctor.toString() !== req.user._id.toString()) {
+        return next(new ErrorHandler('You are not authorized to reschedule this booking', 403));
+    }
+
+    const doctor = await User.findById(booking.doctor);
+    if (!doctor) {
+        return next(new ErrorHandler('Doctor not found', 404));
+    }
+
+    // Add the old time back to the doctor's availability
+    let oldSlot = doctor.availableSlots.find(slot => slot.date === booking.date);
+    if (oldSlot) {
+        oldSlot.time.push(booking.time);
+    } else {
+        doctor.availableSlots.push({ date: booking.date, time: [booking.time] });
+    }
+
+    // Check if new slot is available
+    const newSlot = doctor.availableSlots.find(slot => slot.date === date);
+    if (!newSlot || !newSlot.time.includes(time)) {
+        return next(new ErrorHandler('Selected new time slot is not available', 400));
+    }
+
+    // Remove the new time from availability
+    newSlot.time = newSlot.time.filter(t => t !== time);
+
+    // Update booking
+    booking.date = date;
+    booking.time = time;
+    booking.updatedAt = new Date();
+    await doctor.save();
+    await booking.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Booking rescheduled successfully',
+        booking
+    });
+});
