@@ -8,6 +8,7 @@ export default async function DoctorDetailPage({ params }) {
   if (!user) return <LoggedOutNotice />
   const { id } = await params;
   let doctor;
+  console.log(user,id);
   try {
     const data = await fetcher(`doctor/${id}`);
     doctor = data.doctor;

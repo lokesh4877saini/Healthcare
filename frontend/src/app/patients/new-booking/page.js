@@ -11,6 +11,12 @@ import { formatDate, formatTime24to12 } from "@/lib/formatters";
 export default function NewBookingPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+    setMounted(true);
+    }, []);
+
     const [specializations, setSpecializations] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [availableDates, setAvailableDates] = useState([]);
@@ -148,7 +154,15 @@ export default function NewBookingPage() {
             setSubmitting(false);
         }
     };
-
+    if (!mounted || authLoading) {
+        return (
+          <main className={styles.page}>
+            <p>Loading...</p>
+          </main>
+        );
+      }
+      
+    
     return (
         user ? (<>
             <main className={styles.page}>
