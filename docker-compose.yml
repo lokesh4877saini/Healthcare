@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: prod
+    container_name: backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - JWT_SECRET=ashdfihsdiufhsiduhfiusdhf
+      - MONGO_URI=mongodb+srv://lokesh80saini:W6u5BEoRtjI1ApYX@healthcare.daau1j1.mongodb.net/healthcare?retryWrites=true&w=majority&appName=healthcare
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      target: prod
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=ashdfihsdiufhsiduhfiusdhf
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+
+    depends_on:
+      - backend
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    driver: bridge

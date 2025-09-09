@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGO_URI=...
+    ports:
+      - "5000:5000"
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /usr/src/app
+        - action: rebuild
+          path: ./backend/package.json
+        - action: rebuild
+          path: ./backend/package-lock.json
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    command: sh -c "npm run dev -- -H 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1/
+      - API_URL=http://backend:5000/api/v1/
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /usr/src/app
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/package-lock.json
