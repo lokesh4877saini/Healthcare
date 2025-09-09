@@ -1,7 +1,8 @@
 services:
   - type: web
-    name: backend
+    name: healthcare
     env: node
+    rootDir: backend   
     plan: free
     buildCommand: "npm install && npm run build"
     startCommand: "npm start"
