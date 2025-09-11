@@ -17,7 +17,7 @@ export default function DoctorCard({ doctor }) {
       <div><strong>Email:</strong> <span>{doctor.email}</span></div>
       <div><strong>Phone:</strong> <span>{doctor.phone}</span> </div>
       <div><strong>Join Date:</strong> <span>{joinDate}</span> </div>
-      <Link href={`doctors/${doctor._id}`} className={styles.link}>
+      <Link href={`/patients/doctors/${doctor.id}`} className={styles.link}>
         View Details
       </Link>
     </div>
