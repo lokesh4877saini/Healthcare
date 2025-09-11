@@ -2,6 +2,7 @@
 "use client";
 import { fetcher } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import styles from '@/styles/NewBookingPage.module.css';
 import { createContext, useContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
 export function AuthProvider({ children }) {
@@ -33,7 +34,9 @@ export function AuthProvider({ children }) {
     router.refresh();
   };
   if (loading) {
-    return <div>Loading...</div>; // or null / spinner
+    return        <main className={styles.LoadingDiv}>
+    <p className={styles.LoadingPara}>Loading...</p>
+</main>
   }
   return (
     <AuthContext.Provider value={{ user, login, logout,loading }}>

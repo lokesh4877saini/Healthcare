@@ -3,7 +3,6 @@ const catchAsyncError = require("./catchAsyncError");
 const ErrorHandler = require('../utils/ErrorHandler');
 const JWT = require('jsonwebtoken');
 exports.isAuthenticatedUser = catchAsyncError(async(req,res,next)=>{
-  console.log(req?.cookies);
     const {token} = req.cookies;
     if(!token){
         return next(new ErrorHandler("Please Login to access this resourse",401));

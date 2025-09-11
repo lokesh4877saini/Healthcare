@@ -57,9 +57,9 @@ export default function ViewBookingsPage() {
 
   if(authLoading){
     return (
-      <main>
-        <p>Loading...</p>
-      </main>
+      <main className="LoadingDiv">
+      <p className="LoadingPara">Loading...</p>
+  </main>
     )
   }
 

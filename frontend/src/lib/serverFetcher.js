@@ -1,6 +1,6 @@
 // src/lib/serverFetcher.js
 export async function serverFetcher(endpoint, options = {}) {
-    const res = await fetch(`${process.env.API_URL}${endpoint}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
       headers: {
         "Content-Type": "application/json",
         ...options.headers,

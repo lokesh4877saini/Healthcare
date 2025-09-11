@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const JWT = require('jsonwebtoken');
 const validator = require('validator');
+require('dotenv').config(); // load .env file variables
 const crypto = require('crypto');
 const userSchema = new mongoose.Schema({
     name: {

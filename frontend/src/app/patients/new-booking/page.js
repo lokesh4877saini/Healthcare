@@ -120,8 +120,8 @@ export default function NewBookingPage() {
     }, [selectedDate, selectedDoctor, doctors]);
     if (authLoading) {
         return (
-            <main>
-                <p>Loading...</p>
+            <main className={styles.LoadingDiv}>
+                <p className={styles.LoadingPara}>Loading...</p>
             </main>
         )
     }
@@ -156,9 +156,9 @@ export default function NewBookingPage() {
     };
     if (!mounted || authLoading) {
         return (
-          <main className={styles.page}>
-            <p>Loading...</p>
-          </main>
+            <main className={styles.LoadingDiv}>
+            <p className={styles.LoadingPara}>Loading...</p>
+        </main>
         );
       }
       
@@ -269,7 +269,7 @@ export default function NewBookingPage() {
                         </button>
                     </form>
                 </div>
-                {message && <p className={styles.message}>{message}</p>}
+                {message && <p className={styles.BookingMessage}>{message}</p>}
             </main>
         </>) : (<>
             <LoggedOutNotice />
