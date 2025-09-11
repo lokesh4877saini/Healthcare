@@ -3,10 +3,16 @@ import { fetcher } from '@/lib/api';
 import styles from '@/styles/DoctorDetailPage.module.css';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import LoggedOutNotice from '@/components/LoggedOutNotice';
+
+export const dynamic = "force-dynamic"; 
+export const revalidate = 0; 
+
 export default async function DoctorDetailPage({ params }) {
   const user = await getCurrentUser();
-  if (!user) return <LoggedOutNotice />
-  const { id } = await params;
+  if (!user) return <LoggedOutNotice />;
+
+  const { id } = params; 
+
   let doctor;
   try {
     const data = await fetcher(`doctor/${id}`);
@@ -19,7 +25,9 @@ export default async function DoctorDetailPage({ params }) {
   if (!doctor) {
     return <p>No doctor found.</p>;
   }
-const isEmpty = doctor?.availableSlots?.some(item => item.time.length > 0);
+
+  const isEmpty = doctor?.availableSlots?.some(item => item.time.length > 0);
+
   return (
     <main className={styles.page}>
       <div className={styles.card}>
@@ -30,44 +38,43 @@ const isEmpty = doctor?.availableSlots?.some(item => item.time.length > 0);
         {doctor.availableSlots?.length > 0 ? (
           <div>
             {isEmpty && (
-
               <>
                 <h3>Available Slots:</h3>
                 <ul className={styles.slotList}>
                   {doctor.availableSlots.map((slot) =>
                     Array.isArray(slot.time)
                       ? slot.time.map((timeValue, idx) => {
-                        if (!timeValue || typeof timeValue !== 'string' || !timeValue.trim()) {
-                          return null; // Skip empty times
-                        }
+                          if (!timeValue || typeof timeValue !== 'string' || !timeValue.trim()) {
+                            return null; // Skip empty times
+                          }
 
-                        // Make sure time has seconds
-                        let timePart = timeValue;
-                        if (/^\d{2}:\d{2}$/.test(timePart)) {
-                          timePart += ':00';
-                        }
+                          // Ensure time has seconds
+                          let timePart = timeValue;
+                          if (/^\d{2}:\d{2}$/.test(timePart)) {
+                            timePart += ':00';
+                          }
 
-                        const dateObj = new Date(`${slot.date}T${timePart}`);
-                        if (isNaN(dateObj)) return null;
+                          const dateObj = new Date(`${slot.date}T${timePart}`);
+                          if (isNaN(dateObj)) return null;
 
-                        const formattedDate = dateObj.toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'long',
-                          day: 'numeric',
-                        });
+                          const formattedDate = dateObj.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'long',
+                            day: 'numeric',
+                          });
 
-                        const formattedTime = dateObj.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        });
+                          const formattedTime = dateObj.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          });
 
-                        return (
-                          <li key={`${slot._id}-${idx}`} className={styles.slotItem}>
-                            <span className={styles.slotDate}>{formattedDate}</span>{' '}
-                            <span className={styles.slotTime}>{formattedTime}</span>
-                          </li>
-                        );
-                      })
+                          return (
+                            <li key={`${slot._id}-${idx}`} className={styles.slotItem}>
+                              <span className={styles.slotDate}>{formattedDate}</span>{' '}
+                              <span className={styles.slotTime}>{formattedTime}</span>
+                            </li>
+                          );
+                        })
                       : null
                   )}
                 </ul>
@@ -84,6 +91,3 @@ const isEmpty = doctor?.availableSlots?.some(item => item.time.length > 0);
     </main>
   );
 }
-
-export const dynamicParams = true;
-export const revalidate = 60; // ISR
