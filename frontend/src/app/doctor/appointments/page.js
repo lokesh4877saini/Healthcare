@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from '@/styles/DoctorBookingsPage.module.css';
+import styles1 from '@/styles/NewBookingPage.module.css';
 import { fetcher } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import LoggedOutNotice from '@/components/LoggedOutNotice';
@@ -111,7 +112,9 @@ export default function DoctorBookingsPage() {
     }
   };
 
-  if (loading) return <p>Loading bookings...</p>;
+  if (loading) return <main className={styles1.LoadingDiv}>
+  <p className={styles1.LoadingPara}>Loading booking...</p>
+</main>
   if (error) return <p className={styles.error}>{error}</p>;
 
   return (

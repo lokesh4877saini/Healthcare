@@ -7,10 +7,6 @@ export async function fetcher(endpoint, options = {}) {
     },
     ...options,
   });
-
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
-  }
-
-  return res.json();
+  const data = await res.json();
+  return data;
 }
