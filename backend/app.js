@@ -8,10 +8,9 @@ const errorMiddleware = require('./middleware/error');
 // Load env variables
 dotenv.config({ path: "./config/config.env" });
 
-// Middleware (Order matters!)
+// Middleware 
 app.use(cors({
-    origin:`http://localhost:3000`,
-    // origin: "http://192.168.1.66:3000",
+    origin:[`http://localhost:3000`,'https://healthcare-dp.vercel.app/'],
     credentials:true,
 }));
 app.use(express.json()); //  Handles JSON body parsing
