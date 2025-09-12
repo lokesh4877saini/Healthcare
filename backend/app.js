@@ -10,9 +10,14 @@ dotenv.config({ path: "./config/config.env" });
 
 // Middleware 
 app.use(cors({
-    origin:[`http://localhost:3000`,'https://healthcare-dp.vercel.app/'],
-    credentials:true,
-}));
+    origin: [
+      'http://localhost:3000',             // local dev
+      'https://healthcare-dp.vercel.app',  // production
+      'https://healthcare-git-master-lokesh-sainis-projects.vercel.app' // previews
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true // if you use cookies or auth headers
+  }));
 app.use(express.json()); //  Handles JSON body parsing
 app.use(express.urlencoded({ extended: true })); //  Handles form submissions
 app.use(cookieParser());
