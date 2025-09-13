@@ -9,7 +9,7 @@ import { HiUserAdd } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import styles from "@/styles/Navbar.module.css";
-
+import styles1 from '@/styles/NewBookingPage.module.css';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -20,7 +20,9 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <main className={styles1.LoadingDiv}>
+  <p className={styles1.LoadingPara}>Loading...</p>
+</main>;
 
   const toggleBookingDropdown = () => {
     setBookingDropdownOpen(!bookingDropdownOpen);

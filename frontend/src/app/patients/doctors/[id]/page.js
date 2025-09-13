@@ -34,8 +34,9 @@ export default async function DoctorDetailPage({ params }) {
           <ul className={styles.slotList}>
             {doctor.availableSlots.map(slot =>
               slot.time?.map((time, idx) => (
-                <li key={`${slot._id}-${idx}`}>
-                  {slot.date} {time}
+                <li key={`${slot._id}-${idx}`} className={styles.slotItem}>
+                  <span className={styles.slotDate}>{slot.date} </span>
+                  <span className={styles.slotTime}>{time}</span>
                 </li>
               ))
             )}

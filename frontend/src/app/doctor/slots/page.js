@@ -1,35 +1,60 @@
 'use client';
-
-import DatePicker from 'react-datepicker';
-import { MdDeleteForever } from "react-icons/md";
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/hooks/useAuth';
 import LoggedOutNotice from '@/components/LoggedOutNotice';
 import { formatDate, formatTime24to12 } from '@/lib/formatters';
-import { MdAdd } from "react-icons/md";
 import { fetcher } from '@/lib/api';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
+import styles1 from '@/styles/NewBookingPage.module.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from '@/styles/DoctorSlotsPage.module.css';
-import { useRouter } from 'next/navigation';
+
+const DatePick = dynamic(() => import('@/components/DatePick'), {
+    ssr: false,
+    loading: () => (
+        <div className={styles.loader}>
+          <div className={styles.spinne}> loading Date ...</div>
+        </div>
+      )
+      
+  });
+  
+  const TimeSlotPicker = dynamic(() => import('@/components/TimeSlotPicker'), {
+    ssr: false,
+    loading: () => (
+        <div className={styles.loader}>
+          <div className={styles.spinne}>loading Time ...</div>
+        </div>
+      )
+      
+  });
+  
 
 export default function DoctorSlotsPage() {
-    const {user} = useAuth();
-    const router = useRouter();
-    const [date, setDate] = useState(new Date());
+    const { user } = useAuth();
+    const [isMounted, setIsMounted] = useState(false);
+    const [date, setDate] = useState(null);
     const [timeSlots, setTimeSlots] = useState(['']);
-    const [message, setMessage] = useState('');
     const [availableSlots, setAvailableSlots] = useState([]);
+    const [message, setMessage] = useState('');
+
     useEffect(() => {
+        setIsMounted(true);
         fetchSlots();
     }, []);
+    useEffect(() => {
+        setDate(new Date());
+      }, []);
     async function fetchSlots() {
-        const res = await fetcher('doctor/slots')
-        if (res.success) {
-            setAvailableSlots(res.availableSlots);
-        }
+        const res = await fetcher('doctor/slots');
+        if (res.success) setAvailableSlots(res.availableSlots);
     }
-    if(!user) return <LoggedOutNotice/>
+
+    if (!isMounted) return <main className={styles1.LoadingDiv}>
+    <p className={styles1.LoadingPara}>Loading...</p>
+</main>;
+    if (!user) return <LoggedOutNotice />;
     const handleTimeChange = (index, value) => {
         const newSlots = [...timeSlots];
         newSlots[index] = value;
@@ -54,7 +79,6 @@ export default function DoctorSlotsPage() {
         try {
             const res = await fetcher('doctor/slots', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
             // Simulate success
@@ -77,9 +101,6 @@ export default function DoctorSlotsPage() {
         try {
             const res = await fetcher('doctor/delete-date-slot', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({ date }),
             });
             if (res.success) {
@@ -95,9 +116,6 @@ export default function DoctorSlotsPage() {
         try {
             const res = await fetcher('doctor/delete-time-slot', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({ date, time }),
             });
             if (res.success) {
@@ -107,51 +125,29 @@ export default function DoctorSlotsPage() {
             console.error(error);
         }
     };
-
-
+    // extracting bookedDates
+    const bookedDates = availableSlots.map(item => item?.date)
     return (
         <>
             <main className={styles.container}>
                 <h1 className={styles.heading}>Manage Available Slots</h1>
                 <form onSubmit={handleSubmit} className={styles.form}>
-                    <label className={styles.label}>Select Date:</label>
-                    <DatePicker
-                        selected={date}
-                        onChange={(date) => setDate(date)}
-                        dateFormat="yyyy-MM-dd"
-                        className={styles.datepicker}
-                    />
-
-                    <label className={styles.label}>Time Slots:</label>
-                    <div className={styles.timeSlots}>
-                        {timeSlots.map((slot, index) => (
-                            <div key={index} className={styles.timeSlotItem}>
-                                <input
-                                    type="time"
-                                    value={slot}
-                                    onChange={(e) => handleTimeChange(index, e.target.value)}
-                                    className={styles.timeInput}
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => removeTimeSlot(index)}
-                                    className={styles.removeButton}
-                                    aria-label="Remove"
-                                >
-                                    <MdDeleteForever />
-                                </button>
-                            </div>
-                        ))}
+                    <div className={styles.dateTime}>
+                        
+                        <div
+                        className={styles.DatePick}
+                        >
+                        <DatePick date={date} setDate={setDate} bookedDates={bookedDates} />
+                        </div>
+                        <div className={styles.TimeSlotPicker}>
+                        <TimeSlotPicker
+                            timeSlots={timeSlots}
+                            handleTimeChange={handleTimeChange}
+                            addTimeSlot={addTimeSlot}
+                            removeTimeSlot={removeTimeSlot}
+                        />
+                        </div>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={addTimeSlot}
-                        className={styles.addButton}
-                    >
-                        <MdAdd /> Add Time Slot
-                    </button>
 
                     <button type="submit" className={styles.submitButton}>
                         Save Slots
@@ -229,7 +225,7 @@ export default function DoctorSlotsPage() {
                                                         justify-content:center;
                                                         border-radius: 4px;
                                                         display: flex;
-                                                        width:80%;
+                                                        width:100%;
                                                         align-items: center;
                                                         gap: 6px;
                                                         opacity: 0;
@@ -244,7 +240,7 @@ export default function DoctorSlotsPage() {
                                                     }
 
                                                     .overlay-text {
-                                                        font-size: 9px;
+                                                        font-size:12px;
                                                     }
 
                                                     .date-cell:hover .overlay {

@@ -7,6 +7,7 @@ import styles from "@/styles/ViewBookings.module.css";
 import { useRouter } from "next/navigation";
 import UpdateBookingModal from "@/lib/BookingModal";
 import { useAuth } from "@/context/AuthProvider";
+import styles1 from '@/styles/NewBookingPage.module.css';
 import LoggedOutNotice from "@/components/LoggedOutNotice";
 
 export default function ViewBookingsPage() {
@@ -15,7 +16,6 @@ export default function ViewBookingsPage() {
   const [bookingsByDoctor, setBookingsByDoctor] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -131,7 +131,9 @@ export default function ViewBookingsPage() {
         <main className={styles.page}>
         {!loading && Object.keys(bookingsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
 
-          {loading && <p className={styles.loading}>Loading bookings...</p>}
+          {loading &&  <main className={styles1.LoadingDiv}>
+  <p className={styles1.LoadingPara}>Loading booking...</p>
+</main>}
           {error && <p className={styles.error}>{error}</p>}
           {!loading && Object.keys(bookingsByDoctor).length === 0 && (
             <main className={styles.page}>
