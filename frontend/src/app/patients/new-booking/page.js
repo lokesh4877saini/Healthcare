@@ -109,7 +109,7 @@ export default function NewBookingPage() {
         }
         setSelectedTime("");
         setAvailableTimes([]);
-    }, [selectedDoctor]);
+    }, [selectedDoctor,doctors]);
 
     // Fetch available times based on selected date
     useEffect(() => {
@@ -202,166 +202,166 @@ export default function NewBookingPage() {
             <div className={styles.container}>
                 <h1 className={styles.heading}>Book a New Appointment</h1>
                 <motion.div
-                className={styles.messageWrapper}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: error || message ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
+                    className={styles.messageWrapper}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: error || message ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
                 >
-                {error && <div className={styles.error}>{error}</div>}
-                {message && <p className={styles.success}>{message}</p>}
+                    {error && <div className={styles.error}>{error}</div>}
+                    {message && <p className={styles.success}>{message}</p>}
                 </motion.div>
                 <form onSubmit={handleSubmit} className={styles.form}>
-                <motion.div
-                className={styles.innerContainer}
-                >
-                    <Stepper activeStep={activeStep} alternativeLabel>
-                        {steps.map((label, index) => (
-                            <Step key={index}>
-                                <StepLabel>{label}</StepLabel>
-                            </Step>
-                        ))}
-                    </Stepper>
+                    <motion.div
+                        className={styles.innerContainer}
+                    >
+                        <Stepper activeStep={activeStep} alternativeLabel>
+                            {steps.map((label, index) => (
+                                <Step key={index}>
+                                    <StepLabel>{label}</StepLabel>
+                                </Step>
+                            ))}
+                        </Stepper>
                     </motion.div>
                     <motion.div
-                className={styles.innerContainer}
-                >
-               
-                    {/* Step 1: Specialization */}
-                    {activeStep === 0 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                            <FormControl fullWidth>
-                                <Select
-                                    value={selectedSpecialization}
-                                    onChange={(e) => setSelectedSpecialization(e.target.value)}
-                                    displayEmpty
-                                    required
-                                >
-                                    <MenuItem value="">Select a specialization</MenuItem>
-                                    {specializations.map((spec) => (
-                                        <MenuItem key={spec} value={spec}>
-                                            {spec}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </motion.div>
-                    )}
+                        className={styles.innerContainer}
+                    >
 
-                    {/* Step 2: Choose Doctor */}
-                    {activeStep === 1 && selectedSpecialization && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                            {loadingDoctors ? (
-                                <div className={styles.loadingText}>Loading doctors...</div>
-                            ) : doctors.length > 0 ? (
+                        {/* Step 1: Specialization */}
+                        {activeStep === 0 && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                                 <FormControl fullWidth>
                                     <Select
-                                        value={selectedDoctor}
-                                        onChange={(e) => setSelectedDoctor(e.target.value)}
+                                        value={selectedSpecialization}
+                                        onChange={(e) => setSelectedSpecialization(e.target.value)}
+                                        displayEmpty
                                         required
                                     >
-                                        <MenuItem value="">Select a doctor</MenuItem>
-                                        {doctors.map((doc) => (
-                                            <MenuItem key={doc._id} value={doc._id}>
-                                                Dr. {doc.name}
+                                        <MenuItem value="">Select a specialization</MenuItem>
+                                        {specializations.map((spec) => (
+                                            <MenuItem key={spec} value={spec}>
+                                                {spec}
                                             </MenuItem>
                                         ))}
                                     </Select>
                                 </FormControl>
-                            ) : (
-                                <p>No doctors available for this specialization</p>
-                            )}
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
 
-                    {/* Step 3: Choose Date */}
-                    {activeStep === 2 && selectedDoctor && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                            <FormControl fullWidth>
-                                <Select
-                                    value={selectedDate}
-                                    onChange={(e) => setSelectedDate(e.target.value)}
-                                    required
-                                >
-                                    <MenuItem value="">Select a date</MenuItem>
-                                    {availableDates.map((date) => (
-                                        <MenuItem key={date} value={date}>
-                                            {formatDate(date)}
+                        {/* Step 2: Choose Doctor */}
+                        {activeStep === 1 && selectedSpecialization && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                                {loadingDoctors ? (
+                                    <div className={styles.loadingText}>Loading doctors...</div>
+                                ) : doctors.length > 0 ? (
+                                    <FormControl fullWidth>
+                                        <Select
+                                            value={selectedDoctor}
+                                            onChange={(e) => setSelectedDoctor(e.target.value)}
+                                            required
+                                        >
+                                            <MenuItem value="">Select a doctor</MenuItem>
+                                            {doctors.map((doc) => (
+                                                <MenuItem key={doc._id} value={doc._id}>
+                                                    Dr. {doc.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                ) : (
+                                    <p>No doctors available for this specialization</p>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* Step 3: Choose Date */}
+                        {activeStep === 2 && selectedDoctor && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                                <FormControl fullWidth>
+                                    <Select
+                                        value={selectedDate}
+                                        onChange={(e) => setSelectedDate(e.target.value)}
+                                        required
+                                    >
+                                        <MenuItem value="">Select a date</MenuItem>
+                                        {availableDates.map((date) => (
+                                            <MenuItem key={date} value={date}>
+                                                {formatDate(date)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </motion.div>
+                        )}
+
+                        {/* Step 4: Choose Time */}
+                        {activeStep === 3 && selectedDate && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <FormControl fullWidth>
+                                    <Select
+                                        value={selectedTime}
+                                        onChange={(e) => setSelectedTime(e.target.value)}
+                                        displayEmpty
+                                        required
+                                    >
+                                        {/* Placeholder label inside the dropdown */}
+                                        <MenuItem value="" disabled>
+                                            Select a time
                                         </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </motion.div>
-                    )}
-
-                    {/* Step 4: Choose Time */}
-                    {activeStep === 3 && selectedDate && (
-    <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-    >
-        <FormControl fullWidth>
-            <Select
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                displayEmpty
-                required
-            >
-                {/* Placeholder label inside the dropdown */}
-                <MenuItem value="" disabled>
-                    Select a time
-                </MenuItem>
-                {/* If available times exist, show them */}
-                {availableTimes.length > 0 ? (
-                    availableTimes.map((time) => (
-                        <MenuItem key={time} value={time}>
-                            {formatTime24to12(time)}
-                        </MenuItem>
-                    ))
-                ) : (
-                    // If no times are available, still show a placeholder in the dropdown
-                    <MenuItem value="" disabled>
-                        No available times for the selected date
-                    </MenuItem>
-                )}
-            </Select>
-        </FormControl>
-    </motion.div>
-)}
-
-
-                    {/* Navigation Buttons */}
-                    <Box sx={{ marginTop: "20px", display: "flex", gap: "5rem", justifyItems: "flex-end" }}>
-                        <Button variant="outlined" onClick={handleBack} disabled={activeStep === 0}>
-                            Back
-                        </Button>
-                        {/* Show Next button only for steps 1, 2, and 3 */}
-                        {activeStep >= 0 && activeStep !== 3 && (
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleNext}
-                                disabled={
-                                    !selectedSpecialization || !selectedDoctor || isDisabled
-                                }
-                            >
-                                Next
-                            </Button>
+                                        {/* If available times exist, show them */}
+                                        {availableTimes.length > 0 ? (
+                                            availableTimes.map((time) => (
+                                                <MenuItem key={time} value={time}>
+                                                    {formatTime24to12(time)}
+                                                </MenuItem>
+                                            ))
+                                        ) : (
+                                            // If no times are available, still show a placeholder in the dropdown
+                                            <MenuItem value="" disabled>
+                                                No available times for the selected date
+                                            </MenuItem>
+                                        )}
+                                    </Select>
+                                </FormControl>
+                            </motion.div>
                         )}
 
-                        {/* Show Submit button only for Step 4 */}
-                        {activeStep === 3 && (
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                onClick={handleSubmit}
-                                disabled={!selectedDoctor || !selectedDate || !selectedTime || submitting}
-                            >
-                                {submitting ? "Processing..." : "Book Appointment"}
+
+                        {/* Navigation Buttons */}
+                        <Box sx={{ marginTop: "20px", display: "flex", gap: "5rem", justifyItems: "flex-end" }}>
+                            <Button variant="outlined" onClick={handleBack} disabled={activeStep === 0}>
+                                Back
                             </Button>
-                        )}
-                    </Box>
+                            {/* Show Next button only for steps 1, 2, and 3 */}
+                            {activeStep >= 0 && activeStep !== 3 && (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleNext}
+                                    disabled={
+                                        !selectedSpecialization || !selectedDoctor || isDisabled
+                                    }
+                                >
+                                    Next
+                                </Button>
+                            )}
+
+                            {/* Show Submit button only for Step 4 */}
+                            {activeStep === 3 && (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    type="submit"
+                                    onClick={handleSubmit}
+                                    disabled={!selectedDoctor || !selectedDate || !selectedTime || submitting}
+                                >
+                                    {submitting ? "Processing..." : "Book Appointment"}
+                                </Button>
+                            )}
+                        </Box>
                     </motion.div>
                 </form>
             </div>
