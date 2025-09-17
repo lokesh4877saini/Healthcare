@@ -1,17 +1,15 @@
 // src/app/patients/doctors/[id]/page.js
 import { fetcher } from '@/lib/api';
-import LoggedOutNotice from '@/components/LoggedOutNotice';
 import styles from '@/styles/DoctorDetailPage.module.css';
 import { getCurrentUser } from '@/lib/getCurrentUser';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { redirect } from 'next/navigation';
 
 export default async function DoctorDetailPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) return <LoggedOutNotice />;
-
+  if(!user){
+    redirect('/users/login');
+  }
   let doctor = null;
   try {
     const data = await fetcher(`doctor/${id}`);
