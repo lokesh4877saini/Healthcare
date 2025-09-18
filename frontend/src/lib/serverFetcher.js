@@ -5,6 +5,7 @@ export async function serverFetcher(endpoint, options = {}) {
         "Content-Type": "application/json",
         ...options.headers,
       },
+      credentials: 'include',
       cache: "no-store", // avoid stale data
       ...options,
     });
