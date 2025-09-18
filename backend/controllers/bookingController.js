@@ -55,8 +55,8 @@ exports.getPatientAppointments = catchAsyncError(async (req, res, next) => {
     res.status(200).json({ success: true, bookings });
 });
 
-// Cancel Booking
-exports.cancelBooking = catchAsyncError(async (req, res, next) => {
+// delete Booking
+exports.deleteBooking = catchAsyncError(async (req, res, next) => {
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -67,10 +67,10 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     if (
         booking.patient.toString() !== req.user._id.toString() &&
         booking.doctor.toString() !== req.user._id.toString()
-      ) {
+    ) {
         return next(new ErrorHandler('You are not authorized to cancel this booking', 403));
-      }
-      
+    }
+
 
     // Restore the time slot to doctor's availability
     const doctor = await User.findById(booking.doctor);
@@ -89,7 +89,7 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Booking cancelled and slot restored.',
+        message: 'Booking deleted and slot restored.',
     });
 });
 
@@ -144,3 +144,28 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         booking
     });
 });
+
+exports.completeBooking = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    console.log(id);
+    if (!id) {
+        return next(new ErrorHandler("Booking id is required", 400));
+    }
+    const booking = await Booking.findByIdAndUpdate(
+        id, { status: "completed" },
+        { new: true }
+    );
+    res.json({ success: true, booking });
+})
+exports.cancelBooking = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const booking = await Booking.findByIdAndUpdate(
+        id,
+        { status: "cancelled" },
+        { new: true }
+    );
+    if (!booking) {
+        return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+    res.json({ success: true, booking });
+})
