@@ -13,7 +13,9 @@ app.use(cors({
     origin: [
       'http://localhost:3000',             // local dev
       'https://healthcare-dp.vercel.app',  // production
-      'https://healthcare-git-master-lokesh-sainis-projects.vercel.app' // previews
+      'https://healthcare-git-master-lokesh-sainis-projects.vercel.app', // previews,
+      'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app/',
+      'https://healthcare-pmpc8vf7h-lokesh-sainis-projects.vercel.app/'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true // if you use cookies or auth headers
