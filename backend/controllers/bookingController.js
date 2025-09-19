@@ -147,7 +147,6 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
 
 exports.completeBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
-    console.log(id);
     if (!id) {
         return next(new ErrorHandler("Booking id is required", 400));
     }
