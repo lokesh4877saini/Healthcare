@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "@/styles/DoctorAppointmentsBoard.module.css";
-import { Delete, DragIndicator, Info, InfoSharp } from "@mui/icons-material";
+import { ChangeCircleOutlined, InfoRounded, DragIndicator, CancelOutlined, ChangeCircleRounded, InfoOutline, Help, HelpOutline, Cancel } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import styles1 from "@/styles/NewBookingPage.module.css";
 export default function DoctorAppointmentsBoard({ bookings }) {
@@ -39,27 +39,23 @@ export default function DoctorAppointmentsBoard({ bookings }) {
             window.removeEventListener("resize", checkScreen);
         };
     }, []);
-    const Content = ({appt})=>{
-        return(
+    const Content = ({ appt, colId }) => {
+        console.log(colId)
+        return (
             <>
-        {/* Content */}
-        <div style={{ flex: 1 }}>
-            <p><strong>{appt.patient}</strong></p>
-            <p>{appt.email}</p>
-            <p>{appt.date} @ {appt.time}</p>
-        </div>
+                {/* Content */}
+                <AppointmentContent
+                    patient={appt.patient}
+                    email={appt.email}
+                    date={appt.date}
+                    time={appt.time}
+                />
 
-        {/* Action icons */}
-        <div style={{ display: "flex", gap: "8px" }}>
-            <button
-                onClick={() => alert("Edit " + appt.patient)}
-                className={styles.info}
-            >
-                <InfoSharp />
-            </button>
-            {/* <button onClick={() => alert("Delete " + appt.patient)}><Delete/></button> */}
-        </div>
-    </>
+                {/* Action icons */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                    {renderActions(colId)}
+                </div>
+            </>
         )
     }
     const handleDragEnd = (result) => {
@@ -101,7 +97,106 @@ export default function DoctorAppointmentsBoard({ bookings }) {
         }
     };
 
+    // Modular Appointment Content
+    const AppointmentContent = ({ patient, email, date, time }) => {
+        return (
+            <div
+                style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                }}
+            >
+                <p style={{ margin: 0, fontWeight: 600 }}>{patient}</p>
+                <p style={{ margin: 0, color: "#555", fontSize: "0.9rem" }}>{email}</p>
+                <p style={{ margin: 0, color: "#777", fontSize: "0.85rem" }}>
+                    {date} @ {time}
+                </p>
+            </div>
+        );
+    };
 
+    // HoverIconButton
+    const HoverIconButton = ({ defaultIcon: DefaultIcon, hoverIcon: HoverIcon, color, hoverColor, onClick }) => {
+        const [hover, setHover] = useState(false);
+
+        return (
+            <button
+                style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    padding: "4px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s ease",
+                }}
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+                onClick={onClick}
+            >
+                {hover ? (
+                    <HoverIcon style={{ fontSize: 28, color: hoverColor || color, transition: "color 0.2s ease" }} />
+                ) : (
+                    <DefaultIcon style={{ fontSize: 28, color, transition: "color 0.2s ease" }} />
+                )}
+            </button>
+        );
+    };
+
+    // renderActions
+    const renderActions = (columnId) => {
+        switch (columnId) {
+            case "completed":
+                return (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                        <HoverIconButton
+                            defaultIcon={InfoOutline}
+                            hoverIcon={InfoRounded}
+                            color="blue"
+                            hoverColor="darkblue"
+                            onClick={() => console.log("View details clicked")}
+                        />
+                    </div>
+                );
+
+            case "cancelled":
+                return (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                        <HoverIconButton
+                            defaultIcon={HelpOutline}
+                            hoverIcon={Help}
+                            color="red"
+                            hoverColor="darkred"
+                            onClick={() => console.log("Reason clicked")}
+                        />
+                    </div>
+                );
+
+            default:
+                return (
+                    <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
+                        <HoverIconButton
+                            defaultIcon={ChangeCircleOutlined}
+                            hoverIcon={ChangeCircleRounded}
+                            color="green"
+                            hoverColor="darkgreen"
+                            onClick={() => console.log("Reschedule clicked")}
+                        />
+                        <HoverIconButton
+                            defaultIcon={CancelOutlined}
+                            hoverIcon={Cancel}
+                            color="red"
+                            hoverColor="darkred"
+                            onClick={() => console.log("Cancel clicked")}
+                        />
+                    </div>
+                );
+        }
+    };
     return (
         <>
             <div className={styles.container}>
@@ -128,48 +223,50 @@ export default function DoctorAppointmentsBoard({ bookings }) {
                                     <h2>{col.title}</h2>
                                     {col.appointments.map((appt, index) => (
                                         <Draggable key={appt.id} draggableId={appt.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        borderLeft: `5px solid ${getStatusColor(colId)}`,
-                                                        padding: "8px",
-                                                        marginBottom: "8px",
-                                                        background: snapshot.isDragging ? "#0f8" : "#fff",
-                                                        ...provided.draggableProps.style,
-                                                    }}
-
-                                                >
+                                            {(provided, snapshot) => {
+                                                return (
                                                     <div
-                                                        {...provided.dragHandleProps}      // Only drag handle gets dragHandleProps
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
                                                         style={{
-                                                            width: "20px",
-                                                            height: "100%",
-                                                            borderRadius: "2rem",
-                                                            cursor: "grab",
-                                                            marginRight: "10px",
-                                                            backgroundColor: "#dddd",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            borderLeft: `5px solid ${getStatusColor(colId)}`,
+                                                            padding: "8px",
+                                                            marginBottom: "8px",
+                                                            background: snapshot.isDragging ? "#0f8" : "#fff",
+                                                            ...provided.draggableProps.style,
                                                         }}
+
                                                     >
-                                                        <DragIndicator style={{
-                                                            width: "100%",
-                                                            height: "100%"
-                                                        }}
-                                                            className={styles.grabhandle}
-                                                        />
-                                                    </div>
-                                                    {isMobile ? (
-                                                        <div className={styles.contentGraph}>
-                                                           <Content appt={appt}/>
+                                                        <div
+                                                            {...provided.dragHandleProps}
+                                                            style={{
+                                                                width: "20px",
+                                                                height: "100%",
+                                                                borderRadius: "2rem",
+                                                                cursor: "grab",
+                                                                marginRight: "10px",
+                                                                backgroundColor: "#dddd",
+                                                            }}
+                                                        >
+                                                            <DragIndicator style={{
+                                                                width: "100%",
+                                                                height: "100%"
+                                                            }}
+                                                                className={styles.grabhandle}
+                                                            />
                                                         </div>
-                                                    ) : (
-                                                        <Content appt={appt}/>
-                                                    )}
-                                                </div>
-                                            )}
+                                                        {isMobile ? (
+                                                            <div className={styles.contentGraph}>
+                                                                <Content appt={appt} colId={colId} />
+                                                            </div>
+                                                        ) : (
+                                                            <Content appt={appt} colId={colId} />
+                                                        )}
+                                                    </div>
+                                                )
+                                            }}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder}
