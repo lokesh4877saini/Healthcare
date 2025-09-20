@@ -9,6 +9,7 @@ import LoggedOutNotice from '@/components/LoggedOutNotice';
 import { formatDate, formatTime24to12 } from '@/lib/formatters';
 import { useRouter } from "next/navigation";
 import UpdateBookingModal from '@/lib/BookingModal';
+import ToggleAppointmentsPage from './ToggleView';
 
 export default function DoctorBookingsPage() {
   const router = useRouter();
@@ -16,13 +17,30 @@ export default function DoctorBookingsPage() {
 
   const doctorId = user?._id;
 
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState({
+    upcoming: {
+      title: "Upcoming",
+      appointments: [
+      ],
+  },
+  completed: {
+      title: "Completed",
+      appointments: [
+      ],
+  },
+  cancelled: {
+      title: "Cancelled",
+      appointments: [
+      ],
+  }
+  
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [doctorData, setDoctorData] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
@@ -31,7 +49,8 @@ export default function DoctorBookingsPage() {
       try {
         const res = await fetcher(`booking/doctor`);
         if (res.success) {
-          setBookings(res.bookings);
+          const data = transformData(res.bookings);
+          setBookings(prev => ({...prev ,...data}));
         } else {
           setError(res.message || "Failed to load bookings.");
         }
@@ -44,25 +63,67 @@ export default function DoctorBookingsPage() {
     };
     fetchBookings();
   }, []);
+  // function transformData(bookings){
+  //   // console.log("bookings => ",bookings);
+  //   const upcomming = bookings.filter((item) => item.status === "scheduled");
+  //   const completed = bookings.filter((item) => item.status === "completed");
+  //   const cancel= bookings.filter((item) => item.status === "cancel");
+  //   return {
+  //     upcoming: {
+  //       title: "Upcoming",
+  //       appointments: upcomming
+  //       ,
+  //   },
+  //   completed: {
+  //       title: "Completed",
+  //       appointments: completed
+  //       ,
+  //   },
+  //   cancelled: {
+  //       title: "Cancelled",
+  //       appointments: cancel
+  //       ,
+  //   }
+    
+  //   }
+  // }
+
+  function transformData(bookings) {
+    return bookings.reduce(
+      (acc, item) => {
+        if (item.status === "scheduled") acc.upcoming.appointments.push(item);
+        else if (item.status === "completed") acc.completed.appointments.push(item);
+        else if (item.status === "cancel") acc.cancelled.appointments.push(item);
+        return acc;
+      },
+      {
+        upcoming: { title: "Upcoming", appointments: [] },
+        completed: { title: "Completed", appointments: [] },
+        cancelled: { title: "Cancelled", appointments: [] },
+      }
+    );
+  }
+  
+// status => sheduled,completed,cancel
   if (!user) return <LoggedOutNotice />;
   const handleUpdate = async (bookingId) => {
     try {
-      const res = await fetcher(`doctor/${doctorId}`);
-      if (!res.success) {
-        setError(res.message || "Failed to fetch doctor data.");
-        return;
-      }
+      // const res = await fetcher(`doctor/${doctorId}`);
+      // if (!res.success) {
+      //   setError(res.message || "Failed to fetch doctor data.");
+      //   return;
+      // }
 
-      if (!res.doctor.availableSlots?.length) {
-        alert("No available slots to reschedule.");
-        return;
-      }
+      // if (!res.doctor.availableSlots?.length) {
+      //   alert("No available slots to reschedule.");
+      //   return;
+      // }
 
-      setDoctorData(res.doctor);
-      setSelectedBooking(bookingId);
-      setSelectedDate(res.doctor.availableSlots[0].date);
-      setSelectedTime(res.doctor.availableSlots[0].time[0]);
-      setShowModal(true);
+      // setDoctorData(res.doctor);
+      // setSelectedBooking(bookingId);
+      // setSelectedDate(res.doctor.availableSlots[0].date);
+      // setSelectedTime(res.doctor.availableSlots[0].time[0]);
+      // setShowModal(true);
     } catch (err) {
       console.error("Error fetching doctor data:", err);
       setError("An error occurred while fetching doctor data.");
@@ -71,15 +132,15 @@ export default function DoctorBookingsPage() {
 
   const handleCancel = async (bookingId) => {
     try {
-      const res = await fetcher(`booking/cancel/${bookingId}`, {
-        method: 'DELETE',
-      });
-      if (res.success) {
-        // Refresh bookings after cancel
-        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
-      } else {
-        setError(res.message || "Failed to cancel booking.");
-      }
+      // const res = await fetcher(`booking/delete/${bookingId}`, {
+      //   method: 'DELETE',
+      // });
+      // if (res.success) {
+      //   // Refresh bookings after cancel
+      //   setBookings((prev) => prev.filter((b) => b._id !== bookingId));
+      // } else {
+      //   setError(res.message || "Failed to cancel booking.");
+      // }
     } catch (err) {
       console.error(err);
       setError("An error occurred while cancelling booking.");
@@ -89,23 +150,23 @@ export default function DoctorBookingsPage() {
   const handleSubmitUpdate = async () => {
     if (!selectedBooking) return;
     try {
-      const res = await fetcher(`booking/reschedule/${selectedBooking}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          date: selectedDate,
-          time: selectedTime,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const res = await fetcher(`booking/reschedule/${selectedBooking}`, {
+      //   method: "PUT",
+      //   body: JSON.stringify({
+      //     date: selectedDate,
+      //     time: selectedTime,
+      //   }),
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      if (res.success) {
-        setShowModal(false);
-        router.refresh();
-      } else {
-        setError(res.message || "Failed to update booking.");
-      }
+      // if (res.success) {
+      //   setShowModal(false);
+      //   router.refresh();
+      // } else {
+      //   setError(res.message || "Failed to update booking.");
+      // }
     } catch (err) {
       console.error("Error updating booking:", err);
       setError("An error occurred while updating booking.");
@@ -116,8 +177,11 @@ export default function DoctorBookingsPage() {
   <p className={styles1.LoadingPara}>Loading booking...</p>
 </main>
   if (error) return <p className={styles.error}>{error}</p>;
-
   return (
+    <>
+
+  <ToggleAppointmentsPage bookings={bookings} />
+
     <main className={styles.container}>
       <h2 className={styles.heading}>Patient Appointments</h2>
 
@@ -181,5 +245,5 @@ export default function DoctorBookingsPage() {
         />
       )}
     </main>
-  );
+  </>);
 }
