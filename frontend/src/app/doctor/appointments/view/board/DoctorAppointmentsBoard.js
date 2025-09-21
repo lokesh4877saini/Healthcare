@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "@/styles/DoctorAppointmentsBoard.module.css";
-import { ChangeCircleOutlined, InfoRounded, DragIndicator, CancelOutlined, ChangeCircleRounded, InfoOutline, Help, HelpOutline, Cancel } from "@mui/icons-material";
+import { DragIndicator } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import styles1 from "@/styles/NewBookingPage.module.css";
+import { AppointmentContent } from "./AppointmentContent";
+import { RenderActions } from "./RenderActions";
+import { getStatusColor } from "../../getStatusColor";
 export default function DoctorAppointmentsBoard({ bookings }) {
-    const transformColumn = (column) => ({
-        title: column.title,
+    const transformColumn = (column) => ({title: column.title,
         appointments: column.appointments.map((appt) => ({
             id: appt._id,
             patient: appt.patient.name,
@@ -29,18 +31,15 @@ export default function DoctorAppointmentsBoard({ bookings }) {
 
     useEffect(() => {
         const checkScreen = () => {
-            setIsMobile(window.innerWidth <= 768); // treat <=768px as mobile
+            setIsMobile(window.innerWidth <= 768);
         };
-
         checkScreen(); // run on mount
         window.addEventListener("resize", checkScreen);
-
         return () => {
             window.removeEventListener("resize", checkScreen);
         };
     }, []);
-    const Content = ({ appt, colId }) => {
-        console.log(colId)
+    const Content = ({ appt, colId,id}) => {
         return (
             <>
                 {/* Content */}
@@ -53,15 +52,13 @@ export default function DoctorAppointmentsBoard({ bookings }) {
 
                 {/* Action icons */}
                 <div style={{ display: "flex", gap: "8px" }}>
-                    {renderActions(colId)}
+                    {<RenderActions columnId={colId} id={id}/>}
                 </div>
             </>
         )
     }
     const handleDragEnd = (result) => {
-        console.log(message);
         const { source, destination } = result;
-        console.log(source, destination);
         if (!destination) return;
 
         if (source.droppableId === destination.droppableId) return;
@@ -83,119 +80,6 @@ export default function DoctorAppointmentsBoard({ bookings }) {
         setTimeout(() => {
             setMessage('');
         }, 3000)
-    };
-    const getStatusColor = (columnId) => {
-        switch (columnId) {
-            case "upcoming":
-                return "#4caf50";
-            case "completed":
-                return "#2196f3";
-            case "cancelled":
-                return "#f44336";
-            default:
-                return "#ccc";
-        }
-    };
-
-    // Modular Appointment Content
-    const AppointmentContent = ({ patient, email, date, time }) => {
-        return (
-            <div
-                style={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                }}
-            >
-                <p style={{ margin: 0, fontWeight: 600 }}>{patient}</p>
-                <p style={{ margin: 0, color: "#555", fontSize: "0.9rem" }}>{email}</p>
-                <p style={{ margin: 0, color: "#777", fontSize: "0.85rem" }}>
-                    {date} @ {time}
-                </p>
-            </div>
-        );
-    };
-
-    // HoverIconButton
-    const HoverIconButton = ({ defaultIcon: DefaultIcon, hoverIcon: HoverIcon, color, hoverColor, onClick }) => {
-        const [hover, setHover] = useState(false);
-
-        return (
-            <button
-                style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    padding: "4px",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "all 0.2s ease",
-                }}
-                onMouseEnter={() => setHover(true)}
-                onMouseLeave={() => setHover(false)}
-                onClick={onClick}
-            >
-                {hover ? (
-                    <HoverIcon style={{ fontSize: 28, color: hoverColor || color, transition: "color 0.2s ease" }} />
-                ) : (
-                    <DefaultIcon style={{ fontSize: 28, color, transition: "color 0.2s ease" }} />
-                )}
-            </button>
-        );
-    };
-
-    // renderActions
-    const renderActions = (columnId) => {
-        switch (columnId) {
-            case "completed":
-                return (
-                    <div style={{ display: "flex", gap: "8px" }}>
-                        <HoverIconButton
-                            defaultIcon={InfoOutline}
-                            hoverIcon={InfoRounded}
-                            color="blue"
-                            hoverColor="darkblue"
-                            onClick={() => console.log("View details clicked")}
-                        />
-                    </div>
-                );
-
-            case "cancelled":
-                return (
-                    <div style={{ display: "flex", gap: "8px" }}>
-                        <HoverIconButton
-                            defaultIcon={HelpOutline}
-                            hoverIcon={Help}
-                            color="red"
-                            hoverColor="darkred"
-                            onClick={() => console.log("Reason clicked")}
-                        />
-                    </div>
-                );
-
-            default:
-                return (
-                    <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
-                        <HoverIconButton
-                            defaultIcon={ChangeCircleOutlined}
-                            hoverIcon={ChangeCircleRounded}
-                            color="green"
-                            hoverColor="darkgreen"
-                            onClick={() => console.log("Reschedule clicked")}
-                        />
-                        <HoverIconButton
-                            defaultIcon={CancelOutlined}
-                            hoverIcon={Cancel}
-                            color="red"
-                            hoverColor="darkred"
-                            onClick={() => console.log("Cancel clicked")}
-                        />
-                    </div>
-                );
-        }
     };
     return (
         <>
@@ -259,10 +143,10 @@ export default function DoctorAppointmentsBoard({ bookings }) {
                                                         </div>
                                                         {isMobile ? (
                                                             <div className={styles.contentGraph}>
-                                                                <Content appt={appt} colId={colId} />
+                                                                <Content appt={appt} colId={colId} id={appt.id} />
                                                             </div>
                                                         ) : (
-                                                            <Content appt={appt} colId={colId} />
+                                                            <Content appt={appt} colId={colId} id={appt.id} />
                                                         )}
                                                     </div>
                                                 )

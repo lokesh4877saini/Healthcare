@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import DoctorAppointmentsBoard from "./DoctorAppointmentsBoard";
+import DoctorAppointmentsBoard from "./view/board/DoctorAppointmentsBoard";
 import styles from '@/styles/DoctorBookingsPage.module.css';
-import DoctorAppointmentTab from "./DoctorAppointmentTab";
+import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
 import { Grid3x3 } from "@mui/icons-material";
 import { RiLayout2Line } from "react-icons/ri";
-import { fetcher } from "@/lib/api";
 
 export default function ToggleAppointmentsPage({bookings}) {
   const [viewMode, setViewMode] = useState("board");

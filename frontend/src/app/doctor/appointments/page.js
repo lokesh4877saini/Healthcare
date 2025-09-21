@@ -39,8 +39,6 @@ export default function DoctorBookingsPage() {
   const [error, setError] = useState("");
 
   const [showModal, setShowModal] = useState(false);
-  const [doctorData, setDoctorData] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 

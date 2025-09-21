@@ -94,7 +94,7 @@ exports.deleteBooking = catchAsyncError(async (req, res, next) => {
 });
 
 exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
-    const { date, time } = req.body;
+    const { date, time, forceCreateSlot } = req.body;
 
     if (!date || !time) {
         return next(new ErrorHandler("Please provide new 'date' and 'time'", 400));
@@ -114,6 +114,10 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('Doctor not found', 404));
     }
 
+    if (booking.date === date && booking.time === time) {
+        return next(new ErrorHandler("You have selected the same date and time", 400));
+    }
+
     // Add the old time back to the doctor's availability
     let oldSlot = doctor.availableSlots.find(slot => slot.date === booking.date);
     if (oldSlot) {
@@ -122,19 +126,37 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         doctor.availableSlots.push({ date: booking.date, time: [booking.time] });
     }
 
-    // Check if new slot is available
-    const newSlot = doctor.availableSlots.find(slot => slot.date === date);
-    if (!newSlot || !newSlot.time.includes(time)) {
-        return next(new ErrorHandler('Selected new time slot is not available', 400));
+    // Check if selected new date/time is available
+    let newSlot = doctor.availableSlots.find(slot => slot.date === date);
+    const isTimeAvailable = newSlot && newSlot.time.includes(time);
+
+    // If not available and doctor didn't confirm creation
+    if (!isTimeAvailable && !forceCreateSlot) {
+        return res.status(409).json({
+            success: false,
+            requiresConfirmation: true,
+            message: "The selected time is not currently available. Do you want to add this slot and continue?",
+        });
     }
 
-    // Remove the new time from availability
+    // If confirmed or time already exists
+    if (!newSlot) {
+        doctor.availableSlots.push({ date, time: [] });
+        newSlot = doctor.availableSlots.find(slot => slot.date === date);
+    }
+
+    if (!newSlot.time.includes(time)) {
+        newSlot.time.push(time);
+    }
+
+    // Remove the selected time to "reserve" it
     newSlot.time = newSlot.time.filter(t => t !== time);
 
     // Update booking
     booking.date = date;
     booking.time = time;
     booking.updatedAt = new Date();
+
     await doctor.save();
     await booking.save();
 

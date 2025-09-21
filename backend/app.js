@@ -32,7 +32,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 };
-app.use(cora(corsOptions))
+app.use(cors(corsOptions))
 app.use(express.json()); //  Handles JSON body parsing
 app.use(express.urlencoded({ extended: true })); //  Handles form submissions
 app.use(cookieParser());
