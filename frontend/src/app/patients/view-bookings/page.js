@@ -132,7 +132,7 @@ export default function ViewBookingsPage() {
         {!loading && Object.keys(bookingsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
 
           {loading &&  <main className={styles1.LoadingDiv}>
-  <p className={styles1.LoadingPara}>Loading booking...</p>
+  <p className={styles1.LoadingPara}>Loading Appointments...</p>
 </main>}
           {error && <p className={styles.error}>{error}</p>}
           {!loading && Object.keys(bookingsByDoctor).length === 0 && (

@@ -48,7 +48,7 @@ function a11yProps(index) {
   };
 }
 
-export default function DoctorAppointmentTab({bookings}) {
+export default function DoctorAppointmentTab({bookings,onBookingUpdate}) {
   const theme = useTheme();
   const [value, setValue] = React.useState(0);
 

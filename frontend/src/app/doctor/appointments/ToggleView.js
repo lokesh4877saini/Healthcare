@@ -1,15 +1,70 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DoctorAppointmentsBoard from "./view/board/DoctorAppointmentsBoard";
+import styles1 from '@/styles/NewBookingPage.module.css';
 import styles from '@/styles/DoctorBookingsPage.module.css';
 import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
 import { Grid3x3 } from "@mui/icons-material";
 import { RiLayout2Line } from "react-icons/ri";
+import { fetcher } from "@/lib/api";
+import { useEffect } from "react";
 
-export default function ToggleAppointmentsPage({bookings}) {
+export default function ToggleAppointmentsPage() {
+
   const [viewMode, setViewMode] = useState("board");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [bookings, setBookings] = useState({
+    upcoming: { title: "Upcoming", appointments: [] },
+    completed: { title: "Completed", appointments: [] },
+    cancelled: { title: "Cancelled", appointments: [] }
+  });
+  // memoized fuction for fetch
+  const fetchBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetcher('booking/doctor');
+      if (res.success) {
+        const data = transformData(res.bookings);
+        setBookings(prev => ({ ...prev, ...data }));
+      } else {
+        setError(res.message || "Failed to loead Appoitments");
+      }
+    } catch (error) {
+      console.error("Error fetch appoitments", error);
+      setError("An Error occured while loading bookings");
+    } finally {
+      setLoading(false);
+    }
+  },[])
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+  // callback function to be passed to children
+  const handleBookingUpdate = useCallback(()=>{
+    fetchBookings(); // re-fetch fresh data
+  },[fetchBookings]);
+  function transformData(bookings) {
+    return bookings.reduce(
+      (acc, item) => {
+        if (item.status === "scheduled") acc.upcoming.appointments.push(item);
+        else if (item.status === "completed") acc.completed.appointments.push(item);
+        else if (item.status === "cancel" || item.status === "cancelled") acc.cancelled.appointments.push(item);
+        return acc;
+      },
+      {
+        upcoming: { title: "Upcoming", appointments: [] },
+        completed: { title: "Completed", appointments: [] },
+        cancelled: { title: "Cancelled", appointments: [] },
+      }
+    );
+  }
+  if (loading) return <main className={styles1.LoadingDiv}>
+    <p className={styles1.LoadingPara}>Loading Appointments...</p>
+  </main>
+  if (error) return <p className={styles.error}>{error}</p>;
   const buttonStyle = (active) => ({
     display: "flex",
     alignItems: "center",
@@ -65,7 +120,10 @@ export default function ToggleAppointmentsPage({bookings}) {
             transition={{ duration: 0.1 }}
             className="appointments-view"
           >
-            <DoctorAppointmentsBoard bookings={bookings} />
+            <DoctorAppointmentsBoard
+             bookings={bookings}
+             onBookingUpdate={handleBookingUpdate}
+             />
           </motion.div>
         ) : (
           <motion.div
@@ -76,7 +134,10 @@ export default function ToggleAppointmentsPage({bookings}) {
             transition={{ duration: 0.1 }}
             className="appointments-view"
           >
-            <DoctorAppointmentTab bookings={bookings} />
+            <DoctorAppointmentTab
+             bookings={bookings}
+             onBookingUpdate={handleBookingUpdate}
+             />
           </motion.div>
         )}
       </AnimatePresence>

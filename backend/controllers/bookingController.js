@@ -180,13 +180,27 @@ exports.completeBooking = catchAsyncError(async (req, res, next) => {
 })
 exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
-    const booking = await Booking.findByIdAndUpdate(
-        id,
-        { status: "cancelled" },
-        { new: true }
-    );
-    if (!booking) {
-        return res.status(404).json({ success: false, message: "Booking not found" });
+    const { author, role, content } = req.body;
+    if (!content) {
+        return res.status(400).json({
+            success: false,
+            message: "Content is required for canceling the booking."
+        });
     }
-    res.json({ success: true, booking });
+    const booking = await Booking.findById(id);
+    if (!booking)
+        return res.status(404).json({ success: false, message: "Booking not found" });
+    if (booking.status === 'cancelled') {
+        return res.status(400).json({
+            success: false,
+            message: "Booking is already cancelled."
+        });
+    }
+    // Add cancellation note
+    booking.notes.push({ author, role, content });
+    // Update status
+    booking.status = 'cancelled';
+    booking.updatedAt = new Date();
+    await booking.save();
+    res.json({ success: true, message: "Appointment cancelled Successfully" });
 })

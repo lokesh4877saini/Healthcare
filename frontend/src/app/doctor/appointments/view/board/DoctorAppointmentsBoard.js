@@ -9,7 +9,7 @@ import styles1 from "@/styles/NewBookingPage.module.css";
 import { AppointmentContent } from "./AppointmentContent";
 import { RenderActions } from "./RenderActions";
 import { getStatusColor } from "../../getStatusColor";
-export default function DoctorAppointmentsBoard({ bookings }) {
+export default function DoctorAppointmentsBoard({ bookings,onBookingUpdate }) {
     const transformColumn = (column) => ({title: column.title,
         appointments: column.appointments.map((appt) => ({
             id: appt._id,
@@ -52,7 +52,7 @@ export default function DoctorAppointmentsBoard({ bookings }) {
 
                 {/* Action icons */}
                 <div style={{ display: "flex", gap: "8px" }}>
-                    {<RenderActions columnId={colId} id={id}/>}
+                    {<RenderActions columnId={colId} id={id} onBookingUpdate={onBookingUpdate}/>}
                 </div>
             </>
         )
