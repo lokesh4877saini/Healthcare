@@ -27,18 +27,24 @@ const bookingSchema = new mongoose.Schema({
   notes: [
     {
       author: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-      role: { type: String, enum: ['doctor','patient'] },
+      role: { type: String, enum: ['doctor', 'patient'] },
       content: { type: String, required: true },
       createdAt: { type: Date, default: Date.now }
     }
   ],
+  cancelledBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  cancelledAt: { type: Date, default: null },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-  updatedAt:{
-    type:Date,
-    default:null,
+  updatedAt: {
+    type: Date,
+    default: null,
   }
 });
 

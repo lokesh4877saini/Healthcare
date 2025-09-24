@@ -1,0 +1,147 @@
+'use client'
+import React from 'react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Stack,
+  Divider,
+  Chip,
+  IconButton,
+  Box,
+  Paper,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import NotesIcon from '@mui/icons-material/Notes';
+
+const InfoRow = ({ icon, label }) => (
+  <Stack direction="row" spacing={1} alignItems="center">
+    {icon}
+    <Typography variant="body2">{label}</Typography>
+  </Stack>
+);
+
+export default function CompleteCard({ appointment, onClose }) {
+  const { patient, email, phone, date, time, status, notes } = appointment;
+
+  return (
+    <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        bgcolor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1300,
+        px: 2,
+      }}
+    >
+      <Card
+        sx={{
+          width: 420,
+          borderRadius: 3,
+          boxShadow: 8,
+          bgcolor: 'background.paper',
+          position: 'relative',
+        }}
+      >
+        {/* Header */}
+        <CardHeader
+          title={<Typography variant="h6">Appointment Details</Typography>}
+          action={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Chip
+                label={status}
+                color={status === 'completed' ? 'success' : 'default'}
+                size="small"
+              />
+              <IconButton onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
+            </Stack>
+          }
+        />
+
+        <Divider />
+
+        <CardContent>
+          {/* Patient Info */}
+          <Stack spacing={1.2} mb={2}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Patient Info
+            </Typography>
+            <InfoRow
+              icon={<PersonIcon color="primary" fontSize="small" />}
+              label={patient || 'Unknown'}
+            />
+            <InfoRow
+              icon={<EmailIcon color="action" fontSize="small" />}
+              label={email || 'N/A'}
+            />
+            {phone && (
+              <InfoRow
+                icon={<PhoneIcon color="action" fontSize="small" />}
+                label={phone}
+              />
+            )}
+          </Stack>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Appointment Info */}
+          <Stack spacing={1.2} mb={2}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Appointment Info
+            </Typography>
+            <InfoRow
+              icon={<CalendarTodayIcon color="primary" fontSize="small" />}
+              label={date || 'N/A'}
+            />
+            <InfoRow
+              icon={<AccessTimeIcon color="primary" fontSize="small" />}
+              label={time || 'N/A'}
+            />
+          </Stack>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Notes */}
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <NotesIcon color="action" fontSize="small" />
+              <Typography variant="subtitle2" color="text.secondary">
+                Doctor Notes
+              </Typography>
+            </Stack>
+            <Stack spacing={1} pl={4} mt={1}>
+              {notes && notes.length > 0 ? (
+                notes.map((n, idx) => (
+                  <Paper
+                    key={idx}
+                    variant="outlined"
+                    sx={{ p: 1.2, borderRadius: 2, bgcolor: 'grey.50' }}
+                  >
+                    <Typography variant="body2">
+                      <strong>{n.content}</strong> 
+                    </Typography>
+                  </Paper>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No notes added.
+                </Typography>
+              )}
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}

@@ -167,17 +167,44 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
     });
 });
 
+exports.viewBookingDetails = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    if (!id) return next(new ErrorHandler("Booking id is required", 400));
+    const booking = await Booking.findById(id)
+    .populate("doctor", "name email phone") // select only needed fields
+    .populate("patient", "name email phone")
+    .populate("notes.author"); 
+    if (!booking) return next(new ErrorHandler("Booking not found", 404));
+    res.json({
+        success: true,
+        booking
+    })
+})
+
 exports.completeBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
-    if (!id) {
-        return next(new ErrorHandler("Booking id is required", 400));
+    const { author, role, content } = req.body;
+
+    if (!id) return next(new ErrorHandler("Booking id is required", 400));
+    if (!content?.trim()) {
+        return next(new ErrorHandler("Note content is required", 400));
     }
-    const booking = await Booking.findByIdAndUpdate(
-        id, { status: "completed" },
-        { new: true }
-    );
-    res.json({ success: true, booking });
-})
+
+    const booking = await Booking.findById(id);
+    if (!booking) return next(new ErrorHandler("Booking not found", 404));
+    if (booking.status === 'completed') return next(new ErrorHandler("Booking is already completed", 400));
+
+    // Add note
+    booking.notes.push({ author, role, content });
+
+    // Update status
+    booking.status = "completed";
+    booking.updatedAt = new Date();
+
+    await booking.save();
+
+    res.json({ success: true, message: "Appointment notes updated Successfully" });
+});
 exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     const { author, role, content } = req.body;
@@ -196,11 +223,14 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
             message: "Booking is already cancelled."
         });
     }
+    // cancelled by user
+    booking.cancelledBy = author;
     // Add cancellation note
     booking.notes.push({ author, role, content });
     // Update status
     booking.status = 'cancelled';
     booking.updatedAt = new Date();
+    booking.cancelledAt = new Date();
     await booking.save();
     res.json({ success: true, message: "Appointment cancelled Successfully" });
 })

@@ -3,20 +3,20 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "@/styles/DoctorAppointmentsBoard.module.css";
-import { DragIndicator } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import styles1 from "@/styles/NewBookingPage.module.css";
-import { AppointmentContent } from "./AppointmentContent";
-import { RenderActions } from "./RenderActions";
-import { getStatusColor } from "../../getStatusColor";
-export default function DoctorAppointmentsBoard({ bookings,onBookingUpdate }) {
-    const transformColumn = (column) => ({title: column.title,
+import { AppointmentCard } from "./AppointmentCard.js";
+export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate }) {
+    const transformColumn = (column) => ({
+
+        title: column.title,
         appointments: column.appointments.map((appt) => ({
             id: appt._id,
             patient: appt.patient.name,
             email: appt.patient.email,
             date: appt.date,
             time: appt.time,
+            status:appt.status,
         })),
     });
     const transformColumns = (bookings) => ({
@@ -39,24 +39,6 @@ export default function DoctorAppointmentsBoard({ bookings,onBookingUpdate }) {
             window.removeEventListener("resize", checkScreen);
         };
     }, []);
-    const Content = ({ appt, colId,id}) => {
-        return (
-            <>
-                {/* Content */}
-                <AppointmentContent
-                    patient={appt.patient}
-                    email={appt.email}
-                    date={appt.date}
-                    time={appt.time}
-                />
-
-                {/* Action icons */}
-                <div style={{ display: "flex", gap: "8px" }}>
-                    {<RenderActions columnId={colId} id={id} onBookingUpdate={onBookingUpdate}/>}
-                </div>
-            </>
-        )
-    }
     const handleDragEnd = (result) => {
         const { source, destination } = result;
         if (!destination) return;
@@ -109,46 +91,15 @@ export default function DoctorAppointmentsBoard({ bookings,onBookingUpdate }) {
                                         <Draggable key={appt.id} draggableId={appt.id} index={index}>
                                             {(provided, snapshot) => {
                                                 return (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        style={{
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            borderLeft: `5px solid ${getStatusColor(colId)}`,
-                                                            padding: "8px",
-                                                            marginBottom: "8px",
-                                                            background: snapshot.isDragging ? "#0f8" : "#fff",
-                                                            ...provided.draggableProps.style,
-                                                        }}
-
-                                                    >
-                                                        <div
-                                                            {...provided.dragHandleProps}
-                                                            style={{
-                                                                width: "20px",
-                                                                height: "100%",
-                                                                borderRadius: "2rem",
-                                                                cursor: "grab",
-                                                                marginRight: "10px",
-                                                                backgroundColor: "#dddd",
-                                                            }}
-                                                        >
-                                                            <DragIndicator style={{
-                                                                width: "100%",
-                                                                height: "100%"
-                                                            }}
-                                                                className={styles.grabhandle}
-                                                            />
-                                                        </div>
-                                                        {isMobile ? (
-                                                            <div className={styles.contentGraph}>
-                                                                <Content appt={appt} colId={colId} id={appt.id} />
-                                                            </div>
-                                                        ) : (
-                                                            <Content appt={appt} colId={colId} id={appt.id} />
-                                                        )}
-                                                    </div>
+                                                <AppointmentCard
+                                                        appt={appt}
+                                                        colId={colId}
+                                                        provided={provided}
+                                                        snapshot={snapshot}
+                                                        isMobile={isMobile}
+                                                        status={appt.status}
+                                                        onBookingUpdate={onBookingUpdate}
+                                                    />
                                                 )
                                             }}
                                         </Draggable>

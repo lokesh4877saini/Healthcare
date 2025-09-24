@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DoctorAppointmentsBoard from "./view/board/DoctorAppointmentsBoard";
 import styles1 from '@/styles/NewBookingPage.module.css';
@@ -7,64 +7,79 @@ import styles from '@/styles/DoctorBookingsPage.module.css';
 import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
 import { Grid3x3 } from "@mui/icons-material";
 import { RiLayout2Line } from "react-icons/ri";
-import { fetcher } from "@/lib/api";
-import { useEffect } from "react";
+import { useAppointments } from "@/hooks/Appointments/useAppointments";
 
 export default function ToggleAppointmentsPage() {
-
   const [viewMode, setViewMode] = useState("board");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [bookings, setBookings] = useState({
-    upcoming: { title: "Upcoming", appointments: [] },
-    completed: { title: "Completed", appointments: [] },
-    cancelled: { title: "Cancelled", appointments: [] }
-  });
-  // memoized fuction for fetch
-  const fetchBookings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetcher('booking/doctor');
-      if (res.success) {
-        const data = transformData(res.bookings);
-        setBookings(prev => ({ ...prev, ...data }));
-      } else {
-        setError(res.message || "Failed to loead Appoitments");
-      }
-    } catch (error) {
-      console.error("Error fetch appoitments", error);
-      setError("An Error occured while loading bookings");
-    } finally {
-      setLoading(false);
-    }
-  },[])
 
-  useEffect(() => {
+  // Use the custom hook
+  const {
+    bookings,
+    loading,
+    error,
+    fetchBookings,
+    cancelBooking,
+    completeBooking
+  } = useAppointments('doctor');
+  // Transform data to match your component's expected format
+  const transformBookingsData = (bookings) => ({
+    upcoming: {
+      title: "Upcoming",
+      appointments: bookings.upcoming || []
+    },
+    completed: {
+      title: "Completed",
+      appointments: bookings.completed || []
+    },
+    cancelled: {
+      title: "Cancelled",
+      appointments: bookings.cancelled || []
+    }
+  });
+
+  // Handle actions from child components
+  const handleBookingAction = async (action, bookingId, data) => {
+    switch (action) {
+      case 'cancel':
+        const cancelResult = await cancelBooking(bookingId, data);
+        if (cancelResult.success) {
+        } else {
+          console.error('Cancellation failed:', cancelResult.error);
+        }
+        break;
+
+      case 'complete':
+        const completeResult = await completeBooking(bookingId, data);
+        if (completeResult.success) {
+        } else {
+          console.error('Completion failed:', completeResult.error);
+        }
+        break;
+
+      case 'refresh':
+        await fetchBookings();
+        break;
+
+      default:
+        console.warn('Unknown action:', action);
+    }
+  };
+
+  // Legacy callback for backward compatibility
+  const handleBookingUpdate = () => {
     fetchBookings();
-  }, [fetchBookings]);
-  // callback function to be passed to children
-  const handleBookingUpdate = useCallback(()=>{
-    fetchBookings(); // re-fetch fresh data
-  },[fetchBookings]);
-  function transformData(bookings) {
-    return bookings.reduce(
-      (acc, item) => {
-        if (item.status === "scheduled") acc.upcoming.appointments.push(item);
-        else if (item.status === "completed") acc.completed.appointments.push(item);
-        else if (item.status === "cancel" || item.status === "cancelled") acc.cancelled.appointments.push(item);
-        return acc;
-      },
-      {
-        upcoming: { title: "Upcoming", appointments: [] },
-        completed: { title: "Completed", appointments: [] },
-        cancelled: { title: "Cancelled", appointments: [] },
-      }
-    );
-  }
-  if (loading) return <main className={styles1.LoadingDiv}>
-    <p className={styles1.LoadingPara}>Loading Appointments...</p>
-  </main>
+  };
+
+  if (loading) return (
+    <main className={styles1.LoadingDiv}>
+      <p className={styles1.LoadingPara}>Loading Appointments...</p>
+    </main>
+  );
+
   if (error) return <p className={styles.error}>{error}</p>;
+
+  const transformedBookings = transformBookingsData(bookings);
+
   const buttonStyle = (active) => ({
     display: "flex",
     alignItems: "center",
@@ -80,13 +95,9 @@ export default function ToggleAppointmentsPage() {
 
   return (
     <div className={styles.appointmentsContainer}>
-      {/* Heading */}
       <div className={styles.toggleButtonsContainer}>
         <h2 className={styles.appointmentsTitle}>Appointments</h2>
         <div className={styles.toggleButtonsContainer}>
-
-
-          {/* Toggle Buttons (absolute position at the bottom-right) */}
           <motion.button
             style={buttonStyle(viewMode === "board")}
             whileHover={{ scale: viewMode === "board" ? 1 : 1.05 }}
@@ -109,7 +120,6 @@ export default function ToggleAppointmentsPage() {
         </div>
       </div>
 
-      {/* Animated View */}
       <AnimatePresence mode="wait">
         {viewMode === "board" ? (
           <motion.div
@@ -121,9 +131,10 @@ export default function ToggleAppointmentsPage() {
             className="appointments-view"
           >
             <DoctorAppointmentsBoard
-             bookings={bookings}
-             onBookingUpdate={handleBookingUpdate}
-             />
+              bookings={transformedBookings}
+              onBookingUpdate={handleBookingUpdate}
+              onBookingAction={handleBookingAction}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -135,9 +146,10 @@ export default function ToggleAppointmentsPage() {
             className="appointments-view"
           >
             <DoctorAppointmentTab
-             bookings={bookings}
-             onBookingUpdate={handleBookingUpdate}
-             />
+              bookings={transformedBookings}
+              onBookingUpdate={handleBookingUpdate}
+              onBookingAction={handleBookingAction}
+            />
           </motion.div>
         )}
       </AnimatePresence>
