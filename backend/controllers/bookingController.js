@@ -55,8 +55,8 @@ exports.getPatientAppointments = catchAsyncError(async (req, res, next) => {
     res.status(200).json({ success: true, bookings });
 });
 
-// Cancel Booking
-exports.cancelBooking = catchAsyncError(async (req, res, next) => {
+// delete Booking
+exports.deleteBooking = catchAsyncError(async (req, res, next) => {
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -67,10 +67,10 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     if (
         booking.patient.toString() !== req.user._id.toString() &&
         booking.doctor.toString() !== req.user._id.toString()
-      ) {
+    ) {
         return next(new ErrorHandler('You are not authorized to cancel this booking', 403));
-      }
-      
+    }
+
 
     // Restore the time slot to doctor's availability
     const doctor = await User.findById(booking.doctor);
@@ -89,12 +89,12 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Booking cancelled and slot restored.',
+        message: 'Booking deleted and slot restored.',
     });
 });
 
 exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
-    const { date, time } = req.body;
+    const { date, time, forceCreateSlot } = req.body;
 
     if (!date || !time) {
         return next(new ErrorHandler("Please provide new 'date' and 'time'", 400));
@@ -114,6 +114,10 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('Doctor not found', 404));
     }
 
+    if (booking.date === date && booking.time === time) {
+        return next(new ErrorHandler("You have selected the same date and time", 400));
+    }
+
     // Add the old time back to the doctor's availability
     let oldSlot = doctor.availableSlots.find(slot => slot.date === booking.date);
     if (oldSlot) {
@@ -122,19 +126,37 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         doctor.availableSlots.push({ date: booking.date, time: [booking.time] });
     }
 
-    // Check if new slot is available
-    const newSlot = doctor.availableSlots.find(slot => slot.date === date);
-    if (!newSlot || !newSlot.time.includes(time)) {
-        return next(new ErrorHandler('Selected new time slot is not available', 400));
+    // Check if selected new date/time is available
+    let newSlot = doctor.availableSlots.find(slot => slot.date === date);
+    const isTimeAvailable = newSlot && newSlot.time.includes(time);
+
+    // If not available and doctor didn't confirm creation
+    if (!isTimeAvailable && !forceCreateSlot) {
+        return res.status(409).json({
+            success: false,
+            requiresConfirmation: true,
+            message: "The selected time is not currently available. Do you want to add this slot and continue?",
+        });
     }
 
-    // Remove the new time from availability
+    // If confirmed or time already exists
+    if (!newSlot) {
+        doctor.availableSlots.push({ date, time: [] });
+        newSlot = doctor.availableSlots.find(slot => slot.date === date);
+    }
+
+    if (!newSlot.time.includes(time)) {
+        newSlot.time.push(time);
+    }
+
+    // Remove the selected time to "reserve" it
     newSlot.time = newSlot.time.filter(t => t !== time);
 
     // Update booking
     booking.date = date;
     booking.time = time;
     booking.updatedAt = new Date();
+
     await doctor.save();
     await booking.save();
 
@@ -144,3 +166,41 @@ exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
         booking
     });
 });
+
+exports.completeBooking = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    if (!id) {
+        return next(new ErrorHandler("Booking id is required", 400));
+    }
+    const booking = await Booking.findByIdAndUpdate(
+        id, { status: "completed" },
+        { new: true }
+    );
+    res.json({ success: true, booking });
+})
+exports.cancelBooking = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const { author, role, content } = req.body;
+    if (!content) {
+        return res.status(400).json({
+            success: false,
+            message: "Content is required for canceling the booking."
+        });
+    }
+    const booking = await Booking.findById(id);
+    if (!booking)
+        return res.status(404).json({ success: false, message: "Booking not found" });
+    if (booking.status === 'cancelled') {
+        return res.status(400).json({
+            success: false,
+            message: "Booking is already cancelled."
+        });
+    }
+    // Add cancellation note
+    booking.notes.push({ author, role, content });
+    // Update status
+    booking.status = 'cancelled';
+    booking.updatedAt = new Date();
+    await booking.save();
+    res.json({ success: true, message: "Appointment cancelled Successfully" });
+})

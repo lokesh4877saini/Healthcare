@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticatedUser, authorizeRoles } = require('../middleware/Auth');
-const { bookAppointment, getDoctorAppointments, getPatientAppointments, cancelBooking,rescheduleBooking } = require('../controllers/bookingController');
+const { bookAppointment, getDoctorAppointments, getPatientAppointments, cancelBooking,rescheduleBooking, completeBooking, deleteBooking } = require('../controllers/bookingController');
 
 router.route('/book').post(
     isAuthenticatedUser,
@@ -21,10 +21,10 @@ router.route('/my').get(
 );
 
 router.delete(
-    '/cancel/:id',
+    '/delete/:id',
     isAuthenticatedUser,
     authorizeRoles('patient','doctor'),
-    cancelBooking
+    deleteBooking
 );
 router.put(
     '/reschedule/:id',
@@ -32,5 +32,17 @@ router.put(
     authorizeRoles('patient','doctor'),
     rescheduleBooking
 );
+router.put(
+    '/complete/:id',
+    isAuthenticatedUser,
+    authorizeRoles('doctor'),
+    completeBooking
+)
+router.put(
+    '/cancel/:id',
+    isAuthenticatedUser,
+    authorizeRoles('doctor'),
+    cancelBooking
+)
 
 module.exports = router;

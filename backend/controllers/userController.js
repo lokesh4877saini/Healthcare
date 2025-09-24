@@ -33,7 +33,8 @@ exports.loginUser = catchAsyncErrors(
         if (!isPasswordMatch) {
             return next(new ErrorHandler("Invalid Email & Password", 401));
         }
-        sendToken(user, 200, res);
+        
+        sendToken(user, 200, res, {excludeFields: ['password','email']});
     }
 )
 // Logout User

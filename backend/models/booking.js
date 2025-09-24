@@ -19,6 +19,19 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    enum: ['scheduled', 'completed', 'cancelled'],
+    default: 'scheduled',
+  },
+  notes: [
+    {
+      author: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      role: { type: String, enum: ['doctor','patient'] },
+      content: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

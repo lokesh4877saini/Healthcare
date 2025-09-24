@@ -28,7 +28,7 @@ export default function LoginPage() {
       // Simulate success
       setMessage('Login successful!');
       if (res.success) {
-        login(res.user);
+        login(res.userData);
         router.push("/");
       } else {
         setMessage(res.message || "failed to login");
