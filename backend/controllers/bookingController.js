@@ -171,9 +171,9 @@ exports.viewBookingDetails = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     if (!id) return next(new ErrorHandler("Booking id is required", 400));
     const booking = await Booking.findById(id)
-    .populate("doctor", "name email phone") // select only needed fields
-    .populate("patient", "name email phone")
-    .populate("notes.author"); 
+        .populate("doctor", "name email phone") // select only needed fields
+        .populate("patient", "name email phone")
+        .populate("notes.author");
     if (!booking) return next(new ErrorHandler("Booking not found", 404));
     res.json({
         success: true,
@@ -181,48 +181,46 @@ exports.viewBookingDetails = catchAsyncError(async (req, res, next) => {
     })
 })
 
-exports.completeBooking = catchAsyncError(async (req, res, next) => {
+exports.updateNoteBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     const { author, role, content } = req.body;
 
     if (!id) return next(new ErrorHandler("Booking id is required", 400));
-    if (!content?.trim()) {
-        return next(new ErrorHandler("Note content is required", 400));
-    }
+    if (!content?.trim()) return next(new ErrorHandler("Note content is required", 400));
 
     const booking = await Booking.findById(id);
     if (!booking) return next(new ErrorHandler("Booking not found", 404));
-    if (booking.status === 'completed') return next(new ErrorHandler("Booking is already completed", 400));
 
-    // Add note
-    booking.notes.push({ author, role, content });
+    const lastNote = booking.notes[booking.notes.length - 1];
 
-    // Update status
-    booking.status = "completed";
+    if (lastNote && lastNote.author._id?.toString() === author.toString() && lastNote.role === role) {
+        // Same doctor -> replace content (not append)
+        lastNote.content = content;
+        lastNote.updatedAt = new Date();
+    } else {
+        // First note OR different doctor -> add new note
+        booking.notes.push({
+            author, // could be author object or at least {_id}
+            role,
+            content,
+            createdAt: new Date(),
+        });
+    }
+
     booking.updatedAt = new Date();
-
     await booking.save();
 
-    res.json({ success: true, message: "Appointment notes updated Successfully" });
+    res.json({ success: true, message: "Appointment notes updated successfully" });
 });
+
 exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     const { author, role, content } = req.body;
-    if (!content) {
-        return res.status(400).json({
-            success: false,
-            message: "Content is required for canceling the booking."
-        });
-    }
+    if (!id) return next(new ErrorHandler("Booking id is required", 400));
+    if (!content?.trim()) return next(new ErrorHandler("Note content is required", 400));
     const booking = await Booking.findById(id);
-    if (!booking)
-        return res.status(404).json({ success: false, message: "Booking not found" });
-    if (booking.status === 'cancelled') {
-        return res.status(400).json({
-            success: false,
-            message: "Booking is already cancelled."
-        });
-    }
+    if (!booking) return next(new ErrorHandler("Booking not found", 400));
+    if (booking.status === 'cancelled') return next(new ErrorHandler("Booking is already cancelled", 400));
     // cancelled by user
     booking.cancelledBy = author;
     // Add cancellation note
@@ -234,3 +232,47 @@ exports.cancelBooking = catchAsyncError(async (req, res, next) => {
     await booking.save();
     res.json({ success: true, message: "Appointment cancelled Successfully" });
 })
+
+exports.updateStatusAppoitment = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!id) return next(new ErrorHandler("Booking id is required", 400));
+    if (!status?.trim()) return next(new ErrorHandler("Status is required", 400));
+    const booking = await Booking.findById(id);
+    if (!booking) return next(new ErrorHandler("Booking not found", 400));
+    const statusMap = {
+        scheduled: "upcoming",
+        completed: "completed",
+        cancel: "cancelled",
+        cancelled: "cancelled",
+    };
+
+    const currentKey = statusMap[booking.status]; // "scheduled" -> "upcoming"
+    const targetKey = statusMap[status];         // "completed" -> "completed"
+
+    const allowedTransitions = {
+        upcoming: ["completed", "cancelled"],
+        completed: [],
+        cancelled: ["upcoming"],
+    };
+
+    const allowed = allowedTransitions[currentKey] || [];
+    if (!allowed.includes(targetKey)) return next(new ErrorHandler(`Cannot change appointment from '${booking.status}' to '${status}'`, 400));
+
+    // Update status
+    booking.status = status;
+    booking.updatedAt = new Date();
+    await booking.save();
+    res.json({ success: true, message: "Appointment Status Updated Successfully" });
+})
+
+exports.deleteAllBookings = catchAsyncError(async (req, res, next) => {
+    // Delete all documents in Booking collection
+    const result = await Booking.deleteMany({});
+
+    res.json({
+        success: true,
+        message: "All bookings deleted successfully",
+        deletedCount: result.deletedCount
+    });
+});

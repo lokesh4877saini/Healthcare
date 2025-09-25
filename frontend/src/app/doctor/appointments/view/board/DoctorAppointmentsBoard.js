@@ -6,7 +6,7 @@ import styles from "@/styles/DoctorAppointmentsBoard.module.css";
 import { motion } from "framer-motion";
 import styles1 from "@/styles/NewBookingPage.module.css";
 import { AppointmentCard } from "./AppointmentCard.js";
-export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate }) {
+export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onBookingAction }) {
     const transformColumn = (column) => ({
 
         title: column.title,
@@ -16,7 +16,7 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate }) {
             email: appt.patient.email,
             date: appt.date,
             time: appt.time,
-            status:appt.status,
+            status: appt.status,
         })),
     });
     const transformColumns = (bookings) => ({
@@ -39,30 +39,62 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate }) {
             window.removeEventListener("resize", checkScreen);
         };
     }, []);
-    const handleDragEnd = (result) => {
+    const allowedMoves = {
+        upcoming: ["completed", "cancelled"],  // from upcoming you can go to these
+        completed: [],                         // nothing allowed
+        cancelled: ["upcoming"],               // can reactivate
+    };
+    const handleDragEnd = async (result) => {
         const { source, destination } = result;
         if (!destination) return;
 
         if (source.droppableId === destination.droppableId) return;
 
-        const sourceAppointments = Array.from(columns[source.droppableId].appointments);
-        const destAppointments = Array.from(columns[destination.droppableId].appointments);
+        const from = source.droppableId;
+        const to = destination.droppableId;
 
-        const [moved] = sourceAppointments.splice(source.index, 1);
-        destAppointments.splice(destination.index, 0, moved);
-        if (source.droppableId !== destAppointments.draggableId) {
-            setMessage("Appoitment Updated Successfully")
+        if (!allowedMoves[from]?.includes(to)) {
+            setError(`You cannot move an appointment from ${from} to ${to}`);
+            setTimeout(() => setError(""), 3000);
+            return;
         }
+
+        // Move locally for instant UI feedback
+        const sourceAppointments = Array.from(columns[from].appointments);
+        const destAppointments = Array.from(columns[to].appointments);
+        const [moved] = sourceAppointments.splice(source.index, 1);
+        moved.status = to;
+        destAppointments.splice(destination.index, 0, moved);
 
         setColumns({
             ...columns,
-            [source.droppableId]: { ...columns[source.droppableId], appointments: sourceAppointments },
-            [destination.droppableId]: { ...columns[destination.droppableId], appointments: destAppointments },
+            [from]: { ...columns[from], appointments: sourceAppointments },
+            [to]: { ...columns[to], appointments: destAppointments },
         });
-        setTimeout(() => {
-            setMessage('');
-        }, 3000)
+
+        // Call backend generic status update
+        try {
+            const payload = { status: to }; // "completed" or "cancelled"
+            const result = await onBookingAction('updateStatus', moved.id, payload);
+            console.log(result)
+            if (result?.success) {
+                setMessage("Appointment updated successfully");
+            } else {
+                setError(result?.error || "Failed to update appointment");
+                // Optionally, revert the local UI move here
+            }
+        } catch (err) {
+            console.error("Update status error:", err);
+            setError("Failed to update appointment");
+        } finally {
+            setTimeout(() => {
+                setMessage("");
+                setError("");
+            }, 3000);
+        }
     };
+
+
     return (
         <>
             <div className={styles.container}>
@@ -91,7 +123,7 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate }) {
                                         <Draggable key={appt.id} draggableId={appt.id} index={index}>
                                             {(provided, snapshot) => {
                                                 return (
-                                                <AppointmentCard
+                                                    <AppointmentCard
                                                         appt={appt}
                                                         colId={colId}
                                                         provided={provided}

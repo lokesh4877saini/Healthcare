@@ -19,7 +19,8 @@ export default function ToggleAppointmentsPage() {
     error,
     fetchBookings,
     cancelBooking,
-    completeBooking
+    updateNoteBooking ,
+    updateAppointmentStatus,
   } = useAppointments('doctor');
   // Transform data to match your component's expected format
   const transformBookingsData = (bookings) => ({
@@ -48,13 +49,20 @@ export default function ToggleAppointmentsPage() {
         }
         break;
 
-      case 'complete':
-        const completeResult = await completeBooking(bookingId, data);
-        if (completeResult.success) {
+      case 'updateNote':
+        const NoteResult = await updateNoteBooking(bookingId, data);
+        if (NoteResult.success) {
         } else {
-          console.error('Completion failed:', completeResult.error);
+          console.error('Completion failed:', NoteResult.error);
         }
         break;
+
+      case 'updateStatus':
+        const updateStatusReuslt = await updateAppointmentStatus(bookingId, data);
+        if (updateStatusReuslt.success) { }
+        else {
+          console.error('Completion failed:', updateStatusReuslt.error);
+        }
 
       case 'refresh':
         await fetchBookings();

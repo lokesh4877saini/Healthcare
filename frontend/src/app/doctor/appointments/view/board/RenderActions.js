@@ -41,16 +41,23 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                 });
             }
         }
+    }, []);
+    useEffect(() => {
+        let ignore = false;
         async function fetchSlots() {
             try {
                 const res = await appointmentService.getDoctorSlots();
-                if (res.success) setAvailableSlots(res.availableSlots);
+                if (!ignore && res.success) {
+                    setAvailableSlots(res.availableSlots);
+                }
             } catch (error) {
                 console.error("Failed to fetch slots:", error);
             }
         }
         fetchSlots();
+        return () => { ignore = true; }; // cleanup to prevent re-runs
     }, []);
+
 
     useEffect(() => {
         setDate(new Date());
@@ -140,20 +147,33 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
         }
     };
 
-    const handleAddNoteSubmit = async () => {
-        if (!noteContent.trim()) {
-            console.warn("Please provide a note for completion");
-            return;
+    const handleAddNote = async () => {
+        const res = await appointmentService.getAppointmentsById(appointmentId);
+        const {success,booking} =res;
+        if(success){
+            const {notes} = booking;
+            if(notes){
+                setNoteContent(notes);
+            }
         }
+        setOpenAddNote(true);
+    }
+
+    const handleAddNoteSubmit = async () => {
+        console.log("NoteContent => ",noteContent)
+        // if (!noteContent.trim()) {
+        //     console.warn("Please provide a note for completion");
+        //     return;
+        // }
         const { id, role } = doctorPayload;
         const payload = {
             author: id,
             role: role,
-            content: noteContent,
+            content: noteContent[0].content || noteContent,
         };
         try {
             if (onBookingAction) {
-                const result = await onBookingAction('complete', appointmentId, payload);
+                // const result = await onBookingAction('updateNote', appointmentId, payload);
                 if (result?.success) {
                     setOpenAddNote(false);
                     setNoteContent('');
@@ -162,7 +182,7 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                 }
             } else if (onBookingUpdate) {
                 // Fallback to legacy approach
-                const res = await appointmentService.completeAppointment(appointmentId, payload);
+                const res = await appointmentService.updateNoteBooking(appointmentId, payload);
                 if (res.success) {
                     setOpenAddNote(false);
                     onBookingUpdate();
@@ -208,10 +228,6 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
 
     const handleReshedule = () => {
         setOpen(true);
-    }
-
-    const handleAddNote = () => {
-        setOpenAddNote(true);
     }
 
     const handleTimeChange = (index, value) => {

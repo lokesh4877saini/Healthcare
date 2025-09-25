@@ -65,9 +65,26 @@ export const useAppointments = (userRole = 'doctor') => {
     }
   }, [fetchBookings]);
 
-  const completeBooking = useCallback(async (bookingId, note) => {
+  const updateNoteBooking = useCallback(async (bookingId, note) => {
     try {
       const result = await appointmentService.completeAppointment(bookingId, note);
+      await fetchBookings(); // Refresh data
+      return { 
+        success: true, 
+        message: result.message || 'Appointment completed successfully' 
+      };
+    } catch (err) {
+      setError(err.message);
+      return { 
+        success: false, 
+        error: err.message 
+      };
+    }
+  }, [fetchBookings]);
+
+  const updateAppointmentStatus = useCallback(async (bookingId, status) => {
+    try {
+      const result = await appointmentService.updateAppointmentStatus(bookingId, status);
       await fetchBookings(); // Refresh data
       return { 
         success: true, 
@@ -88,6 +105,7 @@ export const useAppointments = (userRole = 'doctor') => {
     error, 
     fetchBookings, 
     cancelBooking, 
-    completeBooking 
+    updateNoteBooking  ,
+    updateAppointmentStatus,
   };
 };

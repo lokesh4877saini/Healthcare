@@ -34,7 +34,7 @@ exports.loginUser = catchAsyncErrors(
             return next(new ErrorHandler("Invalid Email & Password", 401));
         }
         
-        sendToken(user, 200, res, {excludeFields: ['password','email']});
+        sendToken(user, 200, res, {excludeFields: ['password','email','availableSlots','phone','createdAt']});
     }
 )
 // Logout User
