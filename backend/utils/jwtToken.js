@@ -8,8 +8,8 @@ const sendToken = (user, statusCode, res, options = {}) => {
     }
     const tokenOptions = {
         httpOnly: true,
-        secure: isProduction ? true : false,   //  don’t force secure in dev
-        sameSite: isProduction ? "none" : "lax", // lax works for same-origin dev
+        secure: isProduction ? true : false,  
+        sameSite: isProduction ? "none" : "lax", 
         expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
     };
 

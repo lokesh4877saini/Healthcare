@@ -4,13 +4,8 @@ import styles from '@/styles/DoctorDetailPage.module.css';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import { redirect } from 'next/navigation';
 import { formatTime24to12 } from '@/lib/formatters';
-
 export default async function DoctorDetailPage({ params }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if(!user){
-    redirect('/users/login');
-  }
   let doctor = null;
   try {
     const data = await fetcher(`doctor/${id}`);
@@ -42,8 +37,6 @@ export default async function DoctorDetailPage({ params }) {
               </li>
             ))}
           </ul>
-
-
         ) : <p>No available slots.</p>}
       </div>
     </main>
