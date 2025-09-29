@@ -4,12 +4,12 @@ require('dotenv').config({ path: "back/config/config.env" })
 // const path = require('path');
 // const fs= require('fs');
 // const ejs = require('ejs');
-const catchAsyncErrors = require('../middleware/catchAsyncError');
+const catchAsyncError = require('../middleware/catchAsyncError');
 const sendToken = require('../utils/jwtToken');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 // Register a new User
-exports.registerUser = catchAsyncErrors(async (req, res, next) => {
+exports.registerUser = catchAsyncError(async (req, res, next) => {
 
     const { name, email, password, role, specialization, phone } = req.body;
     const user = await User.create({
@@ -18,7 +18,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     sendToken(user, 201, res)
 }
 )
-exports.loginUser = catchAsyncErrors(
+exports.loginUser = catchAsyncError(
     async (req, res, next) => {
         const { email, password } = req.body;
         //ckecking )if user has given password and email both
@@ -38,7 +38,7 @@ exports.loginUser = catchAsyncErrors(
     }
 )
 // Logout User
-exports.logout = catchAsyncErrors(async (req, res, next) => {
+exports.logout = catchAsyncError(async (req, res, next) => {
     res.cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
@@ -50,7 +50,7 @@ exports.logout = catchAsyncErrors(async (req, res, next) => {
 }
 )
 // forgot password
-exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
+exports.forgotPassword = catchAsyncError(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
         return next(new ErrorHandler("User not found", 404));
@@ -82,7 +82,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     }
 })
 // Reset Password
-exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
+exports.resetPassword = catchAsyncError(async (req, res, next) => {
     // createing token hash
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     const user = await User.findOne({
@@ -107,7 +107,7 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 // Get user Details
 
-exports.getUserDetails = catchAsyncErrors(
+exports.getUserDetails = catchAsyncError(
     async (req, res, next) => {
         const user = await User.findById(req.user._id).select('-password');
         res.status(200).json({
@@ -117,7 +117,7 @@ exports.getUserDetails = catchAsyncErrors(
     }
 )
 // update user password
-exports.updatePassword = catchAsyncErrors(
+exports.updatePassword = catchAsyncError(
     async (req, res, next) => {
         const user = await User.findById(req.user.id).select("+password");
         const isPasswordMatch = await user.comparePassword(req.body.oldPassword);
@@ -134,7 +134,7 @@ exports.updatePassword = catchAsyncErrors(
 )
 //update user Profile
 
-exports.updateProfile = catchAsyncErrors(
+exports.updateProfile = catchAsyncError(
     async (req, res, next) => {
         const newUserData = {
             name: req.body.name,
@@ -150,3 +150,14 @@ exports.updateProfile = catchAsyncErrors(
         })
     }
 )
+
+exports.deleteAllUser = catchAsyncError(async (req, res, next) => {
+    // Delete all documents in Booking collection
+    const result = await User.deleteMany({});
+
+    res.json({
+        success: true,
+        message: "All Users deleted successfully",
+        deletedCount: result.deletedCount
+    });
+});

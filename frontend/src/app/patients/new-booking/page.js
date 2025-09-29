@@ -18,18 +18,18 @@ export default function NewBookingPage() {
     const [specializations, setSpecializations] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [availableDates, setAvailableDates] = useState([]);
-    const [availableTimes, setAvailableTimes] = useState([]);
+    const [availableSlots, setAvailableSlots] = useState([]); 
     const [message, setMessage] = useState("");
 
     const [selectedSpecialization, setSelectedSpecialization] = useState("");
     const [selectedDoctor, setSelectedDoctor] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
-    const [selectedTime, setSelectedTime] = useState("");
+    const [selectedSlot, setSelectedSlot] = useState(null);  
 
     const [loadingDoctors, setLoadingDoctors] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
-    const [isDisabled, setIsDiabled] = useState(false); // For disabling Next button
+    const [isDisabled, setIsDiabled] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
     const steps = ["Select Specialization", "Choose Doctor", "Select Date", "Select Time"];
 
@@ -58,7 +58,7 @@ export default function NewBookingPage() {
     useEffect(() => {
         if (selectedSpecialization) {
             setLoadingDoctors(true);
-            setError(""); // Clear previous errors
+            setError("");
             async function fetchDoctors() {
                 try {
                     const res = await fetcher(`doctor?specialization=${encodeURIComponent(selectedSpecialization)}`);
@@ -83,9 +83,9 @@ export default function NewBookingPage() {
         }
         setSelectedDoctor("");
         setSelectedDate("");
-        setSelectedTime("");
+        setSelectedSlot("");
         setAvailableDates([]);
-        setAvailableTimes([]);
+        setAvailableSlots([]);
     }, [selectedSpecialization]);
 
     // Fetch available dates based on selected doctor
@@ -107,9 +107,9 @@ export default function NewBookingPage() {
         } else {
             setAvailableDates([]);
         }
-        setSelectedTime("");
-        setAvailableTimes([]);
-    }, [selectedDoctor,doctors]);
+        setSelectedSlot("");
+        setAvailableSlots([]);
+    }, [selectedDoctor, doctors]);
 
     // Fetch available times based on selected date
     useEffect(() => {
@@ -117,44 +117,35 @@ export default function NewBookingPage() {
             const doctor = doctors.find(doc => doc._id === selectedDoctor);
             if (doctor?.availableSlots) {
                 const dateSlots = doctor.availableSlots.filter(slot => slot.date === selectedDate);
-                const allTimes = dateSlots.flatMap(slot => slot.time || []);
-                const uniqueSortedTimes = [...new Set(allTimes)].sort((a, b) => {
-                    const formatTime = t => (t.includes(":") ? t : `${t.slice(0, 2)}:${t.slice(2)}`);
-                    return new Date(`1970-01-01T${formatTime(a)}`).getTime() - new Date(`1970-01-01T${formatTime(b)}`).getTime();
+                const allSlots = dateSlots.flatMap(slot => slot.slots || []);
+                const sortedSlots = [...allSlots].sort((a, b) => {
+                    const [aH, aM] = a.startTime.split(':').map(Number);
+                    const [bH, bM] = b.startTime.split(':').map(Number);
+                    return aH * 60 + aM - (bH * 60 + bM);
                 });
-                setAvailableTimes(uniqueSortedTimes);
-                if (uniqueSortedTimes.length === 0) {
-                    setError("No available times for  selected date.");
-                    setIsDiabled(true); // Disable next button if no times
-                    setAvailableTimes([]); // Clear available times
-                } else {
-                    setError("");  // Clear error message if times are available
-                    setAvailableTimes(uniqueSortedTimes);
-                    setIsDiabled(false); // Enable  next button if times are available
-                }
+                setAvailableSlots(sortedSlots);
+                setSelectedSlot(sortedSlots[0] || null);
+                setIsDiabled(sortedSlots.length === 0);
             } else {
-                setAvailableTimes([]);
-                setIsDiabled(true); // Disable next button
+                setAvailableSlots([]);
+                setSelectedSlot(null);
+                setIsDiabled(true);
             }
-        } else {
-            setAvailableTimes([]);
-            setIsDiabled(true); // Disable next button
         }
-
-        setSelectedTime(""); // Clear selected time when date or doctor changes
     }, [selectedDate, selectedDoctor, doctors]);
 
     // Handle Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        setError(""); // Clear any previous errors
+        setError(""); 
 
         try {
             const payload = {
                 doctorId: selectedDoctor,
                 date: selectedDate,
-                time: selectedTime.includes(":") ? selectedTime : `${selectedTime.slice(0, 2)}:${selectedTime.slice(2)}`,
+                startTime: selectedSlot.startTime,
+                endTime: selectedSlot.endTime,
             };
             const res = await fetcher("booking/book", {
                 method: "POST",
@@ -181,7 +172,7 @@ export default function NewBookingPage() {
     };
 
     const handleBack = () => {
-        setIsDiabled(false); // Enable  Next button when going back
+        setIsDiabled(false);
         setActiveStep((prevStep) => prevStep - 1);
     };
 
@@ -302,26 +293,26 @@ export default function NewBookingPage() {
                             >
                                 <FormControl fullWidth>
                                     <Select
-                                        value={selectedTime}
-                                        onChange={(e) => setSelectedTime(e.target.value)}
+                                        value={selectedSlot ? `${selectedSlot.startTime}-${selectedSlot.endTime}` : ""}
+                                        onChange={(e) => {
+                                            const [startTime, endTime] = e.target.value.split("-");
+                                            setSelectedSlot({ startTime, endTime });
+                                        }}
                                         displayEmpty
                                         required
                                     >
-                                        {/* Placeholder label inside the dropdown */}
                                         <MenuItem value="" disabled>
-                                            Select a time
+                                            Select a time slot
                                         </MenuItem>
-                                        {/* If available times exist, show them */}
-                                        {availableTimes.length > 0 ? (
-                                            availableTimes.map((time) => (
-                                                <MenuItem key={time} value={time}>
-                                                    {formatTime24to12(time)}
+                                        {availableSlots.length > 0 ? (
+                                            availableSlots.map((slot, idx) => (
+                                                <MenuItem key={idx} value={`${slot.startTime}-${slot.endTime}`}>
+                                                    {`${formatTime24to12(slot.startTime)} - ${formatTime24to12(slot.endTime)}`}
                                                 </MenuItem>
                                             ))
                                         ) : (
-                                            // If no times are available, still show a placeholder in the dropdown
                                             <MenuItem value="" disabled>
-                                                No available times for the selected date
+                                                No slots available
                                             </MenuItem>
                                         )}
                                     </Select>
@@ -356,7 +347,7 @@ export default function NewBookingPage() {
                                     color="primary"
                                     type="submit"
                                     onClick={handleSubmit}
-                                    disabled={!selectedDoctor || !selectedDate || !selectedTime || submitting}
+                                    disabled={!selectedDoctor || !selectedDate || !selectedSlot || submitting}
                                 >
                                     {submitting ? "Processing..." : "Book Appointment"}
                                 </Button>

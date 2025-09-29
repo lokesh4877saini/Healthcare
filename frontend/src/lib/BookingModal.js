@@ -2,13 +2,12 @@
 
 import styles from "@/styles/UpdateBookingModal.module.css";
 import { formatDate, formatTime24to12 } from "@/lib/formatters";
+import { MenuItem, Select } from "@mui/material";
 
 export default function UpdateBookingModal({
     doctorData,
     selectedDate,
-    selectedTime,
     onDateChange,
-    onTimeChange,
     onSubmit,
     onClose,
 }) {
@@ -47,16 +46,20 @@ export default function UpdateBookingModal({
                     <div className={styles.formGroup}>
                         <label>
                             Select Time:
-                            <select
-                                value={selectedTime}
-                                onChange={(e) => onTimeChange(e.target.value)}
+                            <Select
+                                value={selectedSlot ? `${selectedSlot.startTime}-${selectedSlot.endTime}` : ""}
+                                onChange={(e) => {
+                                    const [startTime, endTime] = e.target.value.split("-");
+                                    setSelectedSlot({ startTime, endTime });
+                                }}
                             >
-                                {getTimesForSelectedDate().map((time) => (
-                                    <option key={time} value={time}>
-                                        {formatTime24to12(time)}
-                                    </option>
+                                {availableSlots.map(slot => (
+                                    <MenuItem key={`${slot.startTime}-${slot.endTime}`} value={`${slot.startTime}-${slot.endTime}`}>
+                                        {`${formatTime24to12(slot.startTime)} - ${formatTime24to12(slot.endTime)}`}
+                                    </MenuItem>
                                 ))}
-                            </select>
+                            </Select>
+
                         </label>
                     </div>
                 </>) : (<>

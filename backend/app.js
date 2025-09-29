@@ -10,6 +10,7 @@ dotenv.config({ path: "./config/config.env" });
 
 const allowedOrigins = [
   'http://localhost:3000',             // local dev
+  `http://192.168.1.68:3000`,
   'https://healthcare-dp.vercel.app',  // production
 ];
 

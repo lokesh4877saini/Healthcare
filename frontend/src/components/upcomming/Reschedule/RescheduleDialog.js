@@ -14,7 +14,6 @@ export default function RescheduleDialog({
   timeSlots,
   handleTimeChange,
   addTimeSlot,
-  isHideButton,
   removeTimeSlot,
   confirmationPopup,
   error
@@ -82,7 +81,6 @@ export default function RescheduleDialog({
             timeSlots={timeSlots}
             handleTimeChange={handleTimeChange}
             addTimeSlot={addTimeSlot}
-            isHideButton={isHideButton}
             removeTimeSlot={removeTimeSlot}
           />
         </Box>

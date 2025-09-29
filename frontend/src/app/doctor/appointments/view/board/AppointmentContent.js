@@ -1,14 +1,14 @@
+"use client";
 import {
     Typography,
     Chip,
     Stack,
-    useMediaQuery,
-    useTheme,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { formatTime24to12 } from "@/lib/formatters";
+import { useScreen } from "@/context/ScreenProvider";
 
 export const AppointmentContent = ({
     patient,
@@ -16,14 +16,8 @@ export const AppointmentContent = ({
     time,
     status = "Pending",
 }) => {
-    const statusColors = {
-        Confirmed: "#4caf50",
-        Pending: "#ff9800",
-        Cancelled: "#f44336",
-    };
 
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const isMobile = useScreen();
     return (
         <Stack spacing={1}>
             <Stack
@@ -32,14 +26,24 @@ export const AppointmentContent = ({
                 alignItems={isMobile ? "flex-start" : "center"}
                 spacing={isMobile ? 1 : 0}
             >
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <PersonIcon color="primary" fontSize={isMobile ? "small" : "medium"} />
-                    <Typography
-                        variant={isMobile ? "body1" : "subtitle1"}
-                        fontWeight={600}
-                    >
-                        {patient}
-                    </Typography>
+                <Stack direction={isMobile ? "column" : "row"} spacing={1} alignItems="center">
+                    {isMobile ? (<>
+                        <Typography
+                            variant={isMobile ? "body1" : "subtitle1"}
+                            fontWeight={600}
+                        >
+                            {patient}
+                        </Typography>
+                    </>) : (<>
+                        <PersonIcon color="primary" fontSize={isMobile ? "small" : "medium"} />
+                        <Typography
+                            variant={isMobile ? "body1" : "subtitle1"}
+                            fontWeight={600}
+                        >
+                            {patient}
+                        </Typography>
+                    </>)}
+
                 </Stack>
                 <Chip
                     label={
@@ -49,45 +53,72 @@ export const AppointmentContent = ({
                                 ? "Cancelled"
                                 : "Pending"
                     }
-                    color={
-                        status === "completed"
-                            ? "success"
-                            : status === "cancelled"
-                                ? "error"
-                                : "warning"
-                    }
                     size="small"
-                    sx={{ mt: 0.5,ml:1, fontWeight: 600 }}
+                    sx={{
+                        mt: 0.5,
+                        ml: 1,
+                        fontWeight: 600,
+                        fontSize: isMobile ? "10px" : "12px",
+                        padding: isMobile ? "1px" : "1px",
+                        backgroundColor:
+                            status === "completed"
+                                ? (theme) => theme.palette.success.light
+                                : status === "cancelled"
+                                    ? (theme) => theme.palette.error.light
+                                    : (theme) => theme.palette.warning.light,
+                        color: "white"
+                    }}
                 />
-
             </Stack>
-
             <Stack spacing={1.2} sx={{ pl: 0.5 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <CalendarTodayIcon
-                        fontSize={isMobile ? "small" : "medium"}
-                        sx={{ color: "primary.main" }}
-                    />
+                {isMobile ? (<>
                     <Typography
                         variant={isMobile ? "body2" : "body1"}
                         color="text.primary"
                     >
                         {new Date(date).toDateString()}
                     </Typography>
-                </Stack>
+                </>) : (<>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <CalendarTodayIcon
+                            fontSize={isMobile ? "small" : "medium"}
+                            sx={{ color: "primary.main" }}
+                        />
+                        <Typography
+                            variant={isMobile ? "body2" : "body1"}
+                            color="text.primary"
+                        >
+                            {new Date(date).toDateString()}
+                        </Typography>
+                    </Stack>
+                </>)}
 
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <AccessTimeIcon
-                        fontSize={isMobile ? "small" : "medium"}
-                        sx={{ color: "primary.main" }}
-                    />
-                    <Typography
-                        variant={isMobile ? "body2" : "body1"}
-                        color="text.primary"
-                    >
-                        {formatTime24to12(time)}
-                    </Typography>
+                    {isMobile ? (
+                        <>
+                            <Typography
+                                variant={isMobile ? "body2" : "body1"}
+                                color="text.primary"
+                            >
+                                {formatTime24to12(time.startTime)} to {formatTime24to12(time.endTime)}
+                            </Typography>
+                        </>
+                    ) : (
+                        <>
+                            <AccessTimeIcon
+                                fontSize={isMobile ? "small" : "medium"}
+                                sx={{ color: "primary.main" }}
+                            />
+                            <Typography
+                                variant={isMobile ? "body2" : "body1"}
+                                color="text.primary"
+                            >
+                                {formatTime24to12(time.startTime)} - {formatTime24to12(time.endTime)}
+                            </Typography>
+                        </>
+                    )}
                 </Stack>
+
             </Stack>
         </Stack>
     );

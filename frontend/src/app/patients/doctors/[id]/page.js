@@ -3,6 +3,7 @@ import { fetcher } from '@/lib/api';
 import styles from '@/styles/DoctorDetailPage.module.css';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import { redirect } from 'next/navigation';
+import { formatTime24to12 } from '@/lib/formatters';
 
 export default async function DoctorDetailPage({ params }) {
   const { id } = await params;
@@ -30,15 +31,19 @@ export default async function DoctorDetailPage({ params }) {
         <p><strong>Phone:</strong> {doctor.phone}</p>
         {doctor.availableSlots?.length > 0 ? (
           <ul className={styles.slotList}>
-            {doctor.availableSlots.map(slot =>
-              slot.time?.map((time, idx) => (
-                <li key={`${slot._id}-${idx}`} className={styles.slotItem}>
-                  <span className={styles.slotDate}>{slot.date} </span>
-                  <span className={styles.slotTime}>{time}</span>
-                </li>
-              ))
-            )}
+            {doctor.availableSlots.map((slot) => (
+              <li key={slot._id} className={styles.slotItem}>
+                <span className={styles.slotDate}>{slot.date}</span>
+                {slot.slots?.map((timeSlot, index) =>
+                  <p className={styles.slotTime} key={index}>
+                    {`${formatTime24to12(timeSlot.startTime)} - ${formatTime24to12(timeSlot.endTime)}`}
+                  </p>
+                )}
+              </li>
+            ))}
           </ul>
+
+
         ) : <p>No available slots.</p>}
       </div>
     </main>

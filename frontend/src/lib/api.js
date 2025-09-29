@@ -1,6 +1,6 @@
 export async function fetcher(endpoint, options = {}) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-    credentials: 'include', 
+    credentials: 'include',
     headers: {
       "Content-Type": "application/json",
       ...options.headers,

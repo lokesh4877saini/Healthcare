@@ -5,8 +5,10 @@ import { DragIndicator } from "@mui/icons-material";
 import { AppointmentContent } from "./AppointmentContent";
 import { RenderActions } from "./RenderActions";
 import { getStatusColor } from "../../getStatusColor";
+import { useScreen } from "@/context/ScreenProvider";
 
-export function AppointmentCard({ appt, colId, provided, snapshot,status, isMobile, onBookingUpdate }) {
+export function AppointmentCard({ appt, colId, provided, snapshot,status, onBookingUpdate }) {
+  const {isMobile} = useScreen();
   return (
     <Card
       ref={provided.innerRef}

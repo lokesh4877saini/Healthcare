@@ -9,13 +9,13 @@ import RescheduleConfirmPopup from "@/components/upcomming/Reschedule/Reschedule
 import CancelAppointment from "@/components/upcomming/cancel/CancelAppointment";
 import AddNoteAppointment from "@/components/upcomming/AddNote/AddNoteAppointment";
 import CompleteCard from "@/components/completed/CompleteCard";
-import CancelledCard from "@/components/cancelled/CompleteCard";
+import CancelledCard from "@/components/cancelled/CancelCard";
 
 export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }) => {
     const appointmentId = id;
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState(null);
-    const [timeSlots, setTimeSlots] = useState(['']);
+    const [timeSlots, setTimeSlots] = useState([{ startTime: '', endTime: '' }]);
     const [showConfirmPopup, setShowConfirmPopup] = useState(false);
     const [availableSlots, setAvailableSlots] = useState([]);
     const [contentReason, setContentReason] = useState('');
@@ -24,7 +24,9 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
     const [viewCancelledAppoitmentOpen, setviewCancelledAppoitmentOpen] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [openAddNote, setOpenAddNote] = useState(false);
-    const [noteContent, setNoteContent] = useState('');
+    const [noteContent, setNoteContent] = useState("");  
+    const [existingNotes, setExistingNotes] = useState([]);     
+
     const [doctorPayload, setDoctorPayload] = useState({
         id: null,
         role: null
@@ -70,7 +72,7 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
         const res = await submitReschedule({
             bookingId: appointmentId,
             date,
-            time: timeSlots[0],
+            time:  timeSlots[0],
             forceCreateSlot: false,
         });
 
@@ -149,22 +151,16 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
 
     const handleAddNote = async () => {
         const res = await appointmentService.getAppointmentsById(appointmentId);
-        const {success,booking} =res;
-        if(success){
-            const {notes} = booking;
-            if(notes){
-                setNoteContent(notes);
-            }
+        if (res.success) {
+            const notes = Array.isArray(res.booking.notes) ? res.booking.notes : [];
+            setExistingNotes(notes); // set existing notes
+            const lastNote = notes[notes.length - 1];
+            setNoteContent(lastNote?.content || ""); // set editable note content
+            setOpenAddNote(true);
         }
-        setOpenAddNote(true);
-    }
+    };
 
     const handleAddNoteSubmit = async () => {
-        console.log("NoteContent => ",noteContent)
-        // if (!noteContent.trim()) {
-        //     console.warn("Please provide a note for completion");
-        //     return;
-        // }
         const { id, role } = doctorPayload;
         const payload = {
             author: id,
@@ -173,7 +169,7 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
         };
         try {
             if (onBookingAction) {
-                // const result = await onBookingAction('updateNote', appointmentId, payload);
+                const result = await onBookingAction('updateNote', appointmentId, payload);
                 if (result?.success) {
                     setOpenAddNote(false);
                     setNoteContent('');
@@ -181,7 +177,6 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                     console.error("Completion failed:", result.error);
                 }
             } else if (onBookingUpdate) {
-                // Fallback to legacy approach
                 const res = await appointmentService.updateNoteBooking(appointmentId, payload);
                 if (res.success) {
                     setOpenAddNote(false);
@@ -206,7 +201,7 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                     email: booking.patient?.email || "N/A",
                     phone: booking.patient?.phone || "",
                     date: new Date(booking.date).toLocaleDateString(),
-                    time: booking.time,
+                    time: { startTime: booking.startTime, endTime: booking.endTime },
                     status: booking.status,
                     cancelledBy: booking.cancelledBy || null,
                     cancelledAt: booking.cancelledAt || null,
@@ -230,9 +225,9 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
         setOpen(true);
     }
 
-    const handleTimeChange = (index, value) => {
+    const handleTimeChange = (index, field, value) => {
         const newSlots = [...timeSlots];
-        newSlots[index] = value;
+        newSlots[index][field] = value; // field = 'startTime' or 'endTime'
         setTimeSlots(newSlots);
     };
 
@@ -267,9 +262,9 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                     <HoverIconButton
                         defaultIcon={InfoOutline}
                         hoverIcon={InfoRounded}
-                        title={"view detail"}
-                        color="blue"
-                        hoverColor="darkblue"
+                        title="View Details"
+                        color={(theme) => theme.palette.info.light}
+                        hoverColor={(theme) => theme.palette.info.dark}
                         onClick={handleViewDetails}
                     />
                     {viewCompleteAppointmentOpen && selectedAppointment && (
@@ -288,8 +283,8 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                         defaultIcon={HelpOutline}
                         hoverIcon={Help}
                         title={"reason"}
-                        color="red"
-                        hoverColor="darkred"
+                        color={(theme) => theme.palette.error.light}
+                        hoverColor={(theme) => theme.palette.error.dark}
                         onClick={handleCancelled}
                     />
                     {viewCancelledAppoitmentOpen && selectedAppointment && (
@@ -308,27 +303,30 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                         <HoverIconButton
                             defaultIcon={ChangeCircleOutlined}
                             hoverIcon={ChangeCircleRounded}
-                            color="green"
-                            title={"Reschedule"}
-                            hoverColor="darkgreen"
+                            color={(theme) => theme.palette.info.light}
+                            title="Reschedule"
+                            hoverColor={(theme) => theme.palette.info.dark}
                             onClick={handleReshedule}
                         />
+
                         <HoverIconButton
                             defaultIcon={CancelOutlined}
                             hoverIcon={Cancel}
-                            color="red"
-                            title={"Cancel"}
-                            hoverColor="darkred"
+                            color={(theme) => theme.palette.error.light}
+                            title="Cancel"
+                            hoverColor={(theme) => theme.palette.error.dark}
                             onClick={handleCancel}
                         />
+
                         <HoverIconButton
                             defaultIcon={NoteAdd}
                             hoverIcon={NoteAddOutlined}
-                            color="green"
-                            title={"edit notes"}
-                            hoverColor="lightgreen"
+                            color={(theme) => theme.palette.success.light}
+                            title="Edit Notes"
+                            hoverColor={(theme) => theme.palette.success.dark}
                             onClick={handleAddNote}
                         />
+
                     </div>
 
                     <RescheduleDialog
@@ -340,7 +338,6 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                         timeSlots={timeSlots}
                         handleTimeChange={handleTimeChange}
                         addTimeSlot={null}
-                        isHideButton={true}
                         confirmationPopup={showConfirmPopup && (
                             <RescheduleConfirmPopup
                                 onCancel={() => setShowConfirmPopup(false)}
@@ -361,9 +358,10 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                     <AddNoteAppointment
                         openAddNote={openAddNote}
                         onClose={() => setOpenAddNote(false)}
-                        note={noteContent}
                         onSubmit={handleAddNoteSubmit}
-                        setNote={setNoteContent}
+                        noteContent={noteContent}
+                        setNoteContent={setNoteContent}
+                        existingNotes={existingNotes}
                         error={error}
                     />
                 </div>

@@ -2,9 +2,8 @@ const Booking = require('../models/booking');
 const User = require('../models/user');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncError = require('../middleware/catchAsyncError');
-
 exports.bookAppointment = catchAsyncError(async (req, res, next) => {
-    const { doctorId, date, time } = req.body;
+    const { doctorId, date, startTime, endTime } = req.body;
 
     // Check doctor existence
     const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
@@ -12,35 +11,41 @@ exports.bookAppointment = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Doctor not found", 404));
     }
 
-    // Check if doctor has the slot available
-    const slot = doctor.availableSlots.find(s => s.date === date && s.time.includes(time));
-    if (!slot) {
-        return next(new ErrorHandler("Selected time slot is not available", 400));
+    // validate startTime < endTime
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    const start = new Date(0,0,0,sh,sm);
+    const end = new Date(0,0,0,eh,em);
+    if (end <= start) {
+        return next(new ErrorHandler("endTime must be after startTime", 400));
     }
 
-    // Prevent double booking
-    const existing = await Booking.findOne({ doctor: doctorId, date, time });
-    if (existing) {
-        return next(new ErrorHandler("This slot is already booked", 400));
+    // Prevent overlapping appointments
+    const overlapping = await Booking.findOne({
+        doctor: doctorId,
+        date,
+        $or: [
+            { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
+        ],
+        status: { $in: ['scheduled', 'completed'] }
+    });
+
+    if (overlapping) {
+        return next(new ErrorHandler("This time slot overlaps with another booking", 409));
     }
 
     const booking = await Booking.create({
         doctor: doctorId,
         patient: req.user._id,
         date,
-        time,
+        startTime,
+        endTime
     });
-
-    // Update doctor’s available slots
-    slot.time = slot.time.filter(t => t !== time); // remove booked time
-    doctor.availableSlots = doctor.availableSlots.map(s => s.date === date ? slot : s);
-    await doctor.save();
 
     res.status(201).json({
         success: true,
         message: "Appointment booked successfully",
-        booking,
-    });
+        });
 });
 
 // Doctor's view
@@ -95,91 +100,118 @@ exports.deleteBooking = catchAsyncError(async (req, res, next) => {
 
 exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
     const { date, time, forceCreateSlot } = req.body;
-
-    if (!date || !time) {
-        return next(new ErrorHandler("Please provide new 'date' and 'time'", 400));
+    const {startTime,endTime} = time;
+    if (!date || !startTime || !endTime) {
+      return next(new ErrorHandler("Please provide 'date', 'startTime' and 'endTime'", 400));
     }
-
+  
     const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-        return next(new ErrorHandler('Booking not found', 404));
+    if (!booking) return next(new ErrorHandler("Booking not found", 404));
+  
+    if (
+      booking.patient.toString() !== req.user._id.toString() &&
+      booking.doctor.toString() !== req.user._id.toString()
+    ) {
+      return next(new ErrorHandler("You are not authorized to reschedule this booking", 403));
     }
-
-    if (booking.patient.toString() !== req.user._id.toString() && booking.doctor.toString() !== req.user._id.toString()) {
-        return next(new ErrorHandler('You are not authorized to reschedule this booking', 403));
-    }
-
+  
     const doctor = await User.findById(booking.doctor);
-    if (!doctor) {
-        return next(new ErrorHandler('Doctor not found', 404));
+    if (!doctor) return next(new ErrorHandler("Doctor not found", 404));
+  
+    // Check if the selected date and time are same as before
+    if (
+      booking.date === date &&
+      booking.startTime === startTime &&
+      booking.endTime === endTime
+    ) {
+      return next(new ErrorHandler("You have selected the same date and time", 400));
     }
-
-    if (booking.date === date && booking.time === time) {
-        return next(new ErrorHandler("You have selected the same date and time", 400));
+  
+    // Add old slot back to doctor's availability
+    let oldSlotDate = doctor.availableSlots.find(slot => slot.date === booking.date);
+    if (!oldSlotDate) {
+      doctor.availableSlots.push({ date: booking.date, slots: [] });
+      oldSlotDate = doctor.availableSlots.find(slot => slot.date === booking.date);
     }
-
-    // Add the old time back to the doctor's availability
-    let oldSlot = doctor.availableSlots.find(slot => slot.date === booking.date);
-    if (oldSlot) {
-        oldSlot.time.push(booking.time);
-    } else {
-        doctor.availableSlots.push({ date: booking.date, time: [booking.time] });
-    }
-
-    // Check if selected new date/time is available
-    let newSlot = doctor.availableSlots.find(slot => slot.date === date);
-    const isTimeAvailable = newSlot && newSlot.time.includes(time);
-
-    // If not available and doctor didn't confirm creation
+  
+    oldSlotDate.slots.push({
+      startTime: booking.startTime,
+      endTime: booking.endTime
+    });
+  
+    // Check if new time is available
+    let newSlotDate = doctor.availableSlots.find(slot => slot.date === date);
+    const isTimeAvailable = newSlotDate?.slots?.some(slot =>
+      slot.startTime === startTime && slot.endTime === endTime
+    );
+  
     if (!isTimeAvailable && !forceCreateSlot) {
-        return res.status(409).json({
-            success: false,
-            requiresConfirmation: true,
-            message: "The selected time is not currently available. Do you want to add this slot and continue?",
-        });
+      return res.status(409).json({
+        success: false,
+        requiresConfirmation: true,
+        message: "Selected time is not available. Do you want to create it anyway?"
+      });
     }
-
-    // If confirmed or time already exists
-    if (!newSlot) {
-        doctor.availableSlots.push({ date, time: [] });
-        newSlot = doctor.availableSlots.find(slot => slot.date === date);
+  
+    // Add the new slot to availability (if not already)
+    if (!newSlotDate) {
+      doctor.availableSlots.push({ date, slots: [] });
+      newSlotDate = doctor.availableSlots.find(slot => slot.date === date);
     }
-
-    if (!newSlot.time.includes(time)) {
-        newSlot.time.push(time);
+  
+    const alreadyExists = newSlotDate.slots.some(
+      slot => slot.startTime === startTime && slot.endTime === endTime
+    );
+  
+    if (!alreadyExists) {
+      newSlotDate.slots.push({ startTime, endTime });
     }
-
-    // Remove the selected time to "reserve" it
-    newSlot.time = newSlot.time.filter(t => t !== time);
-
+  
+    // Remove the new slot (reserve it)
+    newSlotDate.slots = newSlotDate.slots.filter(
+      slot => !(slot.startTime === startTime && slot.endTime === endTime)
+    );
+  
     // Update booking
     booking.date = date;
-    booking.time = time;
+    booking.startTime = startTime;
+    booking.endTime = endTime;
     booking.updatedAt = new Date();
-
+  
     await doctor.save();
     await booking.save();
-
+  
     res.status(200).json({
-        success: true,
-        message: 'Booking rescheduled successfully',
-        booking
+      success: true,
+      message: "Booking rescheduled successfully",
     });
-});
+  });
+  
 
 exports.viewBookingDetails = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     if (!id) return next(new ErrorHandler("Booking id is required", 400));
     const booking = await Booking.findById(id)
-        .populate("doctor", "name email phone") // select only needed fields
+        .populate("doctor", "name email phone")
         .populate("patient", "name email phone")
         .populate("notes.author");
+
     if (!booking) return next(new ErrorHandler("Booking not found", 404));
+
+    let bookingObj = booking.toObject(); // convert Mongoose document to plain JS object
+
+    if (bookingObj.cancelledBy) {
+        const user = await User.findById(bookingObj.cancelledBy).select("name");
+        bookingObj.cancelledBy = user ? user.name : "Unknown User";
+    } else {
+        bookingObj.cancelledBy = null;
+    }
     res.json({
         success: true,
-        booking
-    })
-})
+        booking: bookingObj
+    });
+});
+
 
 exports.updateNoteBooking = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;

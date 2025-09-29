@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "@/styles/DoctorAppointmentsBoard.module.css";
 import { motion } from "framer-motion";
@@ -15,7 +15,10 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onB
             patient: appt.patient.name,
             email: appt.patient.email,
             date: appt.date,
-            time: appt.time,
+            time: {
+                startTime: appt.startTime,
+                endTime: appt.endTime
+            },
             status: appt.status,
         })),
     });
@@ -27,18 +30,7 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onB
     const [columns, setColumns] = useState(transformColumns(bookings));
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(() => {
-        const checkScreen = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
-        checkScreen(); // run on mount
-        window.addEventListener("resize", checkScreen);
-        return () => {
-            window.removeEventListener("resize", checkScreen);
-        };
-    }, []);
     const allowedMoves = {
         upcoming: ["completed", "cancelled"],  // from upcoming you can go to these
         completed: [],                         // nothing allowed
@@ -76,7 +68,6 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onB
         try {
             const payload = { status: to }; // "completed" or "cancelled"
             const result = await onBookingAction('updateStatus', moved.id, payload);
-            console.log(result)
             if (result?.success) {
                 setMessage("Appointment updated successfully");
             } else {
@@ -128,7 +119,6 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onB
                                                         colId={colId}
                                                         provided={provided}
                                                         snapshot={snapshot}
-                                                        isMobile={isMobile}
                                                         status={appt.status}
                                                         onBookingUpdate={onBookingUpdate}
                                                     />

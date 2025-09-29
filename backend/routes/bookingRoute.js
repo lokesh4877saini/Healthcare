@@ -41,7 +41,6 @@ router.put(
 router.put(
     '/cancel/:id',
     isAuthenticatedUser,
-    authorizeRoles('doctor'),
     cancelBooking
 )
 router.get(

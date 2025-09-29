@@ -14,28 +14,28 @@ const DatePick = dynamic(() => import('@/components/DatePick'), {
     ssr: false,
     loading: () => (
         <div className={styles.loader}>
-          <div className={styles.spinne}> loading Date ...</div>
+            <div className={styles.spinne}> loading Date ...</div>
         </div>
-      )
-      
-  });
-  
-  const TimeSlotPicker = dynamic(() => import('@/components/TimeSlotPicker'), {
+    )
+
+});
+
+const TimeSlotPicker = dynamic(() => import('@/components/TimeSlotPicker'), {
     ssr: false,
     loading: () => (
         <div className={styles.loader}>
-          <div className={styles.spinne}>loading Time ...</div>
+            <div className={styles.spinne}>loading Time ...</div>
         </div>
-      )
-      
-  });
-  
+    )
+
+});
+
 
 export default function DoctorSlotsPage() {
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [date, setDate] = useState(null);
-    const [timeSlots, setTimeSlots] = useState(['']);
+    const [timeSlots, setTimeSlots] = useState([{ startTime: '', endTime: '' }]);
     const [availableSlots, setAvailableSlots] = useState([]);
     const [message, setMessage] = useState('');
 
@@ -45,36 +45,40 @@ export default function DoctorSlotsPage() {
     }, []);
     useEffect(() => {
         setDate(new Date());
-      }, []);
+    }, []);
     async function fetchSlots() {
         const res = await fetcher('doctor/slots');
         if (res.success) setAvailableSlots(res.availableSlots);
     }
 
     if (!isMounted) return <main className={styles1.LoadingDiv}>
-    <p className={styles1.LoadingPara}>Loading...</p>
-</main>;
+        <p className={styles1.LoadingPara}>Loading...</p>
+    </main>;
     if (!user) return <LoggedOutNotice />;
-    const handleTimeChange = (index, value) => {
+    const handleTimeChange = (index, field, value) => {
         const newSlots = [...timeSlots];
-        newSlots[index] = value;
+        newSlots[index][field] = value; // field = 'startTime' or 'endTime'
         setTimeSlots(newSlots);
     };
 
     const addTimeSlot = () => {
-        setTimeSlots([...timeSlots, '']);
+        setTimeSlots([...timeSlots, { startTime: '', endTime: '' }]);
     };
 
     const removeTimeSlot = (index) => {
-        const newSlots = timeSlots.filter((_, i) => i !== index);
-        setTimeSlots(newSlots);
+        setTimeSlots(timeSlots.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const payload = {
             date: date.toISOString().split('T')[0],
-            timeSlots: timeSlots.filter(Boolean),
+            slots: timeSlots
+                .filter(slot => slot.startTime && slot.endTime)
+                .map(slot => ({
+                    startTime: slot.startTime,
+                    endTime: slot.endTime
+                }))
         };
         try {
             const res = await fetcher('doctor/slots', {
@@ -112,15 +116,13 @@ export default function DoctorSlotsPage() {
     };
 
     // DELETE single time slot
-    const handleDeleteTime = async (date, time) => {
+    const handleDeleteTime = async (date, slot) => {
         try {
             const res = await fetcher('doctor/delete-time-slot', {
                 method: 'DELETE',
-                body: JSON.stringify({ date, time }),
+                body: JSON.stringify({ date, startTime: slot.startTime, endTime: slot.endTime }),
             });
-            if (res.success) {
-                await fetchSlots();
-            }
+            if (res.success) await fetchSlots();
         } catch (error) {
             console.error(error);
         }
@@ -133,19 +135,19 @@ export default function DoctorSlotsPage() {
                 <h1 className={styles.heading}>Manage Available Slots</h1>
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.dateTime}>
-                        
+
                         <div
-                        className={styles.DatePick}
+                            className={styles.DatePick}
                         >
-                        <DatePick date={date} setDate={setDate} bookedDates={bookedDates} />
+                            <DatePick date={date} setDate={setDate} bookedDates={bookedDates} />
                         </div>
                         <div className={styles.TimeSlotPicker}>
-                        <TimeSlotPicker
-                            timeSlots={timeSlots}
-                            handleTimeChange={handleTimeChange}
-                            addTimeSlot={addTimeSlot}
-                            removeTimeSlot={removeTimeSlot}
-                        />
+                            <TimeSlotPicker
+                                timeSlots={timeSlots}
+                                handleTimeChange={handleTimeChange}
+                                addTimeSlot={addTimeSlot}
+                                removeTimeSlot={removeTimeSlot}
+                            />
                         </div>
                     </div>
 
@@ -182,13 +184,9 @@ export default function DoctorSlotsPage() {
                                         </td>
 
                                         <td>
-                                            {slot.time.map((time, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="time-span"
-                                                    onClick={() => handleDeleteTime(slot.date, time)}
-                                                >
-                                                    {formatTime24to12(time)}
+                                            {slot.slots.map((slotObj, idx) => (
+                                                <span key={idx} className="time-span">
+                                                    {formatTime24to12(slotObj.startTime)} - {formatTime24to12(slotObj.endTime)}
                                                     <div className="overlay">
                                                         <RiDeleteBinLine className="icon" />
                                                     </div>

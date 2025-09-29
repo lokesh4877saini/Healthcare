@@ -153,11 +153,16 @@ export default function ToggleAppointmentsPage() {
             transition={{ duration: 0.1 }}
             className="appointments-view"
           >
-            <DoctorAppointmentTab
+            {/* <DoctorAppointmentTab
               bookings={transformedBookings}
               onBookingUpdate={handleBookingUpdate}
               onBookingAction={handleBookingAction}
-            />
+            /> */}
+            {/* <DoctorAppointmentTab
+              bookings={transformedBookings}
+              onBookingUpdate={handleBookingUpdate}
+              onBookingAction={handleBookingAction}
+            /> */}
           </motion.div>
         )}
       </AnimatePresence>

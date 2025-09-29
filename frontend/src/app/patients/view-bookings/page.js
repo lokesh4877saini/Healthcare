@@ -9,20 +9,28 @@ import UpdateBookingModal from "@/lib/BookingModal";
 import { useAuth } from "@/context/AuthProvider";
 import styles1 from '@/styles/NewBookingPage.module.css';
 import LoggedOutNotice from "@/components/LoggedOutNotice";
+import CancelAppointment from "@/components/upcomming/cancel/CancelAppointment";
+import { appointmentService } from "@/services/appointmentService";
 
 export default function ViewBookingsPage() {
-  const { user,loading:authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [bookingsByDoctor, setBookingsByDoctor] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // Modal states
-  const [showModal, setShowModal] = useState(false);
+  // const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [doctorData, setDoctorData] = useState(null);
-
+  // const [doctorData, setDoctorData] = useState(null);
+  const [openCancel, setOpenCancel] = useState(false);
+  const [contentReason, setContentReason] = useState('');
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState(null); // {startTime, endTime}
+  const [bookingId,setBookingId] = useState(null);
+  const [Payload, setDoctorPayload] = useState({
+    id: null,
+    role: null
+  });
 
   useEffect(() => {
     fetchBookings();
@@ -55,14 +63,13 @@ export default function ViewBookingsPage() {
     }
   }
 
-  if(authLoading){
+  if (authLoading) {
     return (
       <main className="LoadingDiv">
-      <p className="LoadingPara">Loading...</p>
-  </main>
+        <p className="LoadingPara">Loading...</p>
+      </main>
     )
   }
-
   const handleUpdate = async (booking, doctorId) => {
     try {
       const res = await fetcher(`doctor/${doctorId}`);
@@ -71,10 +78,9 @@ export default function ViewBookingsPage() {
         setSelectedBooking(booking);
 
         // Pre-select first available date & time
-        const firstSlot = res.doctor.availableSlots[0];
-        setSelectedDate(firstSlot.date);
-        setSelectedTime(firstSlot.time[0]);
-        setShowModal(true);
+        const firstSlot = res.doctor.availableSlots[0]?.slots?.[0];
+        setSelectedDate(firstSlot?.date);
+        setSelectedSlot(firstSlot || null);
       } else {
         setError(res.message || "Failed to load doctor data.");
       }
@@ -84,30 +90,21 @@ export default function ViewBookingsPage() {
     }
   };
 
-  const handleCancel = async (bookingId) => {
-    try {
-      const res = await fetcher(`booking/cancel/${bookingId}`, {
-        method: "DELETE",
-      });
-      if (res.success) {
-        await fetchBookings();
-      } else {
-        setError(res.message || "Failed to cancel booking.");
-      }
-    } catch (err) {
-      console.error("Error cancelling booking:", err);
-      setError("An error occurred while cancelling booking.");
-    }
-  };
+  const handleCancel = (id) => {
+    setOpenCancel(true);
+    setBookingId(id);
+  }
 
   const handleSubmitUpdate = async () => {
-    if (!selectedBooking) return;
+    if (!selectedBooking || !selectedSlot) return;
+
     try {
       const res = await fetcher(`booking/reschedule/${selectedBooking._id}`, {
         method: "PUT",
         body: JSON.stringify({
           date: selectedDate,
-          time: selectedTime,
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -125,15 +122,41 @@ export default function ViewBookingsPage() {
       setError("An error occurred while updating booking.");
     }
   };
+  const handleCancelSubmit = async () => {
+    if (!contentReason.trim()) {
+      console.warn("Please provide a reason for cancellation");
+      return;
+    }
+
+    const { id, role } = Payload;
+    const payload = {
+      author: id,
+      role: role,
+      content: contentReason,
+    };
+    try {
+      const result = await appointmentService.cancelAppointment(bookingId, payload);
+      if (result?.success) {
+        setOpenCancel(false);
+        setContentReason('');
+        setBookingId(null);
+      } else if (result?.error) {
+        console.error("Cancellation failed:", result.error);
+      }
+    } catch (error) {
+      console.error("Cancellation error:", error);
+    }
+  };
+
   return (
     user ? (<>
       <main className={styles.container}>
         <main className={styles.page}>
-        {!loading && Object.keys(bookingsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
+          {!loading && Object.keys(bookingsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
 
-          {loading &&  <main className={styles1.LoadingDiv}>
-  <p className={styles1.LoadingPara}>Loading Appointments...</p>
-</main>}
+          {loading && <main className={styles1.LoadingDiv}>
+            <p className={styles1.LoadingPara}>Loading Appointments...</p>
+          </main>}
           {error && <p className={styles.error}>{error}</p>}
           {!loading && Object.keys(bookingsByDoctor).length === 0 && (
             <main className={styles.page}>
@@ -168,7 +191,7 @@ export default function ViewBookingsPage() {
                           <span>Date:</span> {formatDate(booking.date)}
                         </p>
                         <p>
-                          <span>Time:</span> {formatTime24to12(booking.time)}
+                          <span>Time:</span> {`${formatTime24to12(booking.startTime)} - ${formatTime24to12(booking.endTime)}`}
                         </p>
                         <p className={styles.timestamp}>
                           {booking.updatedAt && booking.updatedAt !== booking.createdAt ? "Updated:" : "Created:"}{" "}
@@ -201,21 +224,30 @@ export default function ViewBookingsPage() {
             ))}
           </div>
 
-          {showModal && doctorData && (
+          {/* {showModal && doctorData && (
             <UpdateBookingModal
               doctorData={doctorData}
               selectedDate={selectedDate}
-              selectedTime={selectedTime}
+              selectedSlot={selectedSlot}
               onDateChange={(date) => {
                 setSelectedDate(date);
-                const times = doctorData.availableSlots.find((s) => s.date === date)?.time;
-                setSelectedTime(times?.[0] || "");
+                const slots = doctorData.availableSlots.find((s) => s.date === date)?.slots || [];
+                setSelectedSlot(slots[0] || null);
               }}
-              onTimeChange={setSelectedTime}
+              onSlotChange={setSelectedSlot}
               onSubmit={handleSubmitUpdate}
               onClose={() => setShowModal(false)}
             />
-          )}
+
+          )} */}
+          <CancelAppointment
+            open_canel={openCancel}
+            onClose={() => setOpenCancel(false)}
+            note={contentReason}
+            onSubmit={handleCancelSubmit}
+            setNote={setContentReason}
+            error={error}
+          />
         </main>
       </main>
     </>) : (<>
