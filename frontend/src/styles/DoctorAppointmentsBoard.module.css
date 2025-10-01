@@ -1,0 +1,94 @@
+.container {
+  position: absolute;
+  top: 15px;
+  left: 40%;
+}
+.info {
+  border: none;
+  cursor: pointer;
+  background-color: #fff;
+}
+.board {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.column {
+  flex: 1 1 300px;
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 15px;
+  overflow: hidden;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.column h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: #fff;
+  border-left: 5px solid #4caf50;
+  /* dynamically change based on status */
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  word-break: break-word;
+  /* prevent long text from overflowing */
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+/* Two columns per row on tablets/foldables */
+@media (max-width: 1024px) {
+  .column {
+    flex: 1 1 45%;
+  }
+}
+
+/* Single column per row on small screens */
+@media (max-width: 600px) {
+  .column {
+    flex: 1 1 100%;
+  }
+
+  .container {
+    position: relative;
+    left: 0;
+    height: 12vh;
+  }
+
+}
+
+@media screen and (max-width:500px) {
+  .grabhandle {
+    width: 20px !important;
+    height: 100% !important;
+  }
+
+  .info {
+    width: 100% !important;
+  }
+  .contentGraph{
+    /* display: flex !important; */
+    /* width: fit-content; */
+    /* flex-direction: column; */
+  }
+}

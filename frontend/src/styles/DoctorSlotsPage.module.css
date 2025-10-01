@@ -2,7 +2,7 @@
 .container {
   position: relative;
   /* height: 100vh; */
-  max-width: 700px;
+  max-width: 800px;
   margin: 5rem auto;
   padding: 3rem 2.5rem;
   background: rgba(255, 255, 255, 0.1);
@@ -65,10 +65,11 @@
 .dateTime{
   display: flex;
   justify-content: space-evenly;
-  /* background-color: coral; */
 }
 .TimeSlotPicker{
+  text-align: center;
   background-color:#ffffff;
+  padding: 1rem;
   border-radius: 20px;
 }
 .datepicker {
@@ -181,11 +182,6 @@
   margin-top: 2rem;
   overflow-x: auto;
 }
-.tableContainer {
-  margin-top: 2rem;
-  overflow-x: auto;
-}
-
 .slotsTable {
   width: 100%;
   border-collapse: collapse;

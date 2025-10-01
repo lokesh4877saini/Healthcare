@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticatedUser, authorizeRoles } = require('../middleware/Auth');
-const { bookAppointment, getDoctorAppointments, getPatientAppointments, cancelBooking,rescheduleBooking } = require('../controllers/bookingController');
+const { bookAppointment, getDoctorAppointments, getPatientAppointments, cancelBooking,rescheduleBooking, completeBooking, deleteBooking, viewBookingDetails, updateStatusAppoitment, updateNoteBooking, deleteAllBookings } = require('../controllers/bookingController');
 
 router.route('/book').post(
     isAuthenticatedUser,
@@ -21,10 +21,10 @@ router.route('/my').get(
 );
 
 router.delete(
-    '/cancel/:id',
+    '/delete/:id',
     isAuthenticatedUser,
     authorizeRoles('patient','doctor'),
-    cancelBooking
+    deleteBooking
 );
 router.put(
     '/reschedule/:id',
@@ -32,5 +32,31 @@ router.put(
     authorizeRoles('patient','doctor'),
     rescheduleBooking
 );
-
+router.put(
+    '/updateNote/:id',
+    isAuthenticatedUser,
+    authorizeRoles('doctor'),
+    updateNoteBooking
+)
+router.put(
+    '/cancel/:id',
+    isAuthenticatedUser,
+    cancelBooking
+)
+router.get(
+    '/viewDetails/:id',
+    isAuthenticatedUser,
+    authorizeRoles('doctor'),
+    viewBookingDetails
+)
+router.put(
+    '/updatestatus/:id',
+    isAuthenticatedUser,
+    authorizeRoles('doctor'),
+    updateStatusAppoitment
+)
+router.delete(
+    '/allbookingdelete',
+    deleteAllBookings
+)
 module.exports = router;

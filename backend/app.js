@@ -8,17 +8,34 @@ const errorMiddleware = require('./middleware/error');
 // Load env variables
 dotenv.config({ path: "./config/config.env" });
 
-// Middleware 
-app.use(cors({
-    origin: [
-      'http://localhost:3000',             // local dev
-      'https://healthcare-dp.vercel.app',  // production
-      'https://healthcare-git-master-lokesh-sainis-projects.vercel.app', // previews
-      'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app/'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true // if you use cookies or auth headers
-  }));
+const allowedOrigins = [
+  'http://localhost:3000',             // local dev
+  'http://192.168.1.68:3000',    // local network
+  'https://healthcare-dp.vercel.app',  // production
+  'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app'
+  'https://healthcare-git-master-lokesh-sainis-projects.vercel.app', // pr preview branch
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman)
+    if (!origin) return callback(null, true);
+
+    // Allow if origin is in allowedOrigins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Regex for all Vercel preview deployments
+    const vercelPreviewRegex = /^https:\/\/healthcare-[a-zA-Z0-9-]+-lokesh-sainis-projects\.vercel\.app\/?$/;
+
+    if (vercelPreviewRegex.test(origin)) return callback(null, true);
+
+    // Deny all others
+    callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+};
+app.use(cors(corsOptions))
 app.use(express.json()); //  Handles JSON body parsing
 app.use(express.urlencoded({ extended: true })); //  Handles form submissions
 app.use(cookieParser());

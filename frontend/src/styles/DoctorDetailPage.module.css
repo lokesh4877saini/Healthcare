@@ -76,43 +76,58 @@
 .card .slotList {
   list-style: none;
   padding: 0;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
 .slotItem {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(8px) saturate(150%);
-  -webkit-backdrop-filter: blur(8px) saturate(150%);
-  padding: 0.5rem 0;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  color: #fff;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .slotItem:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .slotDate {
-  display: block;
   font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+  color: #00ff99;
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .slotTime {
-  display: block;
   font-size: 0.95rem;
-  color: #00ff88;
-  font-weight: 600;
+  color: #66ffb3;
+  font-weight: 500;
+  margin: 0.2rem 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(0, 255, 136, 0.1);
+  width: fit-content;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
+
+.slotTime:hover {
+  background: rgba(0, 255, 136, 0.2);
+  transform: translateY(-2px);
+}
+
 
 @media (max-width: 440px) {
   .card {

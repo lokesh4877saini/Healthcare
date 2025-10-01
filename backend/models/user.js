@@ -38,10 +38,15 @@ const userSchema = new mongoose.Schema({
     },
     availableSlots: [
         {
-            date: String, // e.g. "2025-07-01"
-            time: [String], // e.g. ["10:00", "11:00"]
-        },
-    ],
+            date: String,  // e.g. "2025-09-27"
+            slots: [       // array of time ranges
+                {
+                    startTime: { type: String, required: true }, // e.g. "09:00"
+                    endTime: { type: String, required: true }    // e.g. "10:00"
+                }
+            ]
+        }
+    ],      
     createdAt: {
         type: Date,
         default: Date.now,

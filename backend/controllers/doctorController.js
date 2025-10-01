@@ -2,10 +2,10 @@ const User = require('../models/user');
 const catchAsyncErrors = require('../middleware/catchAsyncError');
 const ErrorHandler = require('../utils/ErrorHandler');
 exports.addDoctorSlots = catchAsyncErrors(async (req, res, next) => {
-  const { date, timeSlots } = req.body;
+  const { date, slots } = req.body;
 
-  if (!date || !timeSlots || !Array.isArray(timeSlots)) {
-    return next(new ErrorHandler("Date and timeSlots are required", 400));
+  if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
+    return next(new ErrorHandler("Date and slots are required", 400));
   }
 
   const user = await User.findById(req.user._id);
@@ -14,21 +14,41 @@ exports.addDoctorSlots = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Only doctors can add slots", 403));
   }
 
-  const existingSlot = user.availableSlots.find(slot => slot.date === date);
+  // Find existing slots for the date
+  let existingSlot = user.availableSlots.find(slot => slot.date === date);
 
-  if (existingSlot) {
-    const duplicateTimes = timeSlots.filter(time => existingSlot.time.includes(time));
+  // Initialize slots array if not present
+  if (!existingSlot) {
+    existingSlot = { date, slots: [] };
+    user.availableSlots.push(existingSlot);
+  }
 
-    if (duplicateTimes.length > 0) {
-      return next(new ErrorHandler(
-        `These time slots already exist for ${date}: ${duplicateTimes.join(', ')}`,
-        400
-      ));
+  // Check for overlapping slots
+  for (const newSlot of slots) {
+    const [newStartHour, newStartMin] = newSlot.startTime.split(':').map(Number);
+    const [newEndHour, newEndMin] = newSlot.endTime.split(':').map(Number);
+    const newStart = new Date(0, 0, 0, newStartHour, newStartMin);
+    const newEnd = new Date(0, 0, 0, newEndHour, newEndMin);
+
+    if (newEnd <= newStart) {
+      return next(new ErrorHandler(`Invalid slot: endTime must be after startTime (${newSlot.startTime} - ${newSlot.endTime})`, 400));
     }
 
-    existingSlot.time.push(...timeSlots);
-  } else {
-    user.availableSlots.push({ date, time: timeSlots });
+    const isOverlap = existingSlot.slots.some(existing => {
+      const [existStartHour, existStartMin] = existing.startTime.split(':').map(Number);
+      const [existEndHour, existEndMin] = existing.endTime.split(':').map(Number);
+      const existStart = new Date(0, 0, 0, existStartHour, existStartMin);
+      const existEnd = new Date(0, 0, 0, existEndHour, existEndMin);
+
+      return newStart < existEnd && newEnd > existStart; // overlapping check
+    });
+
+    if (isOverlap) {
+      return next(new ErrorHandler(`Slot overlaps with existing slot: ${newSlot.startTime} - ${newSlot.endTime}`, 400));
+    }
+
+    // Add valid new slot
+    existingSlot.slots.push(newSlot);
   }
 
   await user.save();
@@ -36,7 +56,6 @@ exports.addDoctorSlots = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Slots updated successfully",
-    availableSlots: user.availableSlots,
   });
 });
 

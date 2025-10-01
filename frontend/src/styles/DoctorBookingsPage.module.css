@@ -1,12 +1,7 @@
 /* Container with animated glassmorphism background */
 .container {
     position: relative;
-    /* max-width: 1000px; */
-    height: 100vh;
-    margin: 5rem auto;
-    max-width: fit-content;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.15);
+    max-width: 100%;
     backdrop-filter: blur(15px);
     border-radius: 20px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
@@ -24,14 +19,7 @@
     height: 200%;
     background: radial-gradient(circle at 75% 75%, #00bfff 20%, transparent 50%),
                 radial-gradient(circle at 25% 25%, #0070f3 0%, transparent 50%);
-    animation: rotate 25s linear infinite;
     z-index: -1;
-  }
-  
-  @keyframes rotate {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(180deg); }
-    100% { transform: rotate(360deg); }
   }
   
   .heading {
@@ -41,6 +29,27 @@
     margin-bottom: 2rem;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
+  .appointmentsContainer {
+    position: relative;
+    height: 100vh;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    width: 100%;
+  }
+  
+  .appointmentsTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .toggleButtonsContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
   
   /* Table styling */
   .tableContainer {
@@ -146,8 +155,9 @@
       align-items: stretch;
     }
   }
-  
-  
+  .appointmentsContainer{
+    height: auto;
+  }
   .cancelButton {
     background: #ff4d4d;
     color: #fff;
@@ -157,4 +167,8 @@
     background: #cc0000;
     transform: scale(1.05);
   }
-  
+  @media (max-width:500px) and (min-width:200px) {
+    .toggleButtonsContainer{
+      flex-direction: column;
+    }
+  }
