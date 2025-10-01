@@ -12,7 +12,7 @@ const allowedOrigins = [
   'http://localhost:3000',             // local dev
   'http://192.168.1.68:3000',    // local network
   'https://healthcare-dp.vercel.app',  // production
-  'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app'
+  'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app',
   'https://healthcare-git-master-lokesh-sainis-projects.vercel.app', // pr preview branch
 ];
 
