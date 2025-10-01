@@ -241,7 +241,7 @@ export const RenderActions = ({ columnId, id, onBookingUpdate, onBookingAction }
                 email: booking.patient?.email || "N/A",
                 phone: booking.patient?.phone || "",
                 date: new Date(booking.date).toLocaleDateString(),
-                time: booking.time,
+                time: {startTime:booking.startTime,endTime:booking.endTime},
                 status: booking.status,
                 notes: booking.notes?.map(n => ({
                     content: n.content,

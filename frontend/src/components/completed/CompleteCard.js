@@ -19,6 +19,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import NotesIcon from '@mui/icons-material/Notes';
+import { formatTime24to12 } from '@/lib/formatters';
 
 const InfoRow = ({ icon, label }) => (
   <Stack direction="row" spacing={1} alignItems="center">
@@ -106,7 +107,7 @@ export default function CompleteCard({ appointment, onClose }) {
             />
             <InfoRow
               icon={<AccessTimeIcon color="primary" fontSize="small" />}
-              label={time || 'N/A'}
+              label={`${formatTime24to12(time.startTime)} - ${formatTime24to12(time.endTime)}` || 'N/A'}
             />
           </Stack>
 
