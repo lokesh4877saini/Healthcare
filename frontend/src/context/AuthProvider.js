@@ -13,8 +13,14 @@ export function AuthProvider({ children }) {
   // On mount, check for user in localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Failed to parse user from localStorage:", err);
+        setUser(null);
+        localStorage.removeItem("user");
+      }
     }
     setLoading(false);
   }, []);
@@ -34,12 +40,12 @@ export function AuthProvider({ children }) {
     router.refresh();
   };
   if (loading) {
-    return        <main className={styles.LoadingDiv}>
-    <p className={styles.LoadingPara}>Loading...</p>
-</main>
+    return <main className={styles.LoadingDiv}>
+      <p className={styles.LoadingPara}>Loading...</p>
+    </main>
   }
   return (
-    <AuthContext.Provider value={{ user, login, logout,loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
