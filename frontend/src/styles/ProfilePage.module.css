@@ -16,7 +16,8 @@
 }
 
 .card {
-  background: #fff;
+  background: var(--bg);
+  color: var(--text-primary);
   border: 1px solid #ddd;
   border-radius: 12px;
   padding: 2rem;
@@ -36,11 +37,11 @@
 
 .label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .value {
-  color: #555;
+  color: var(--text-secondary);
   max-width: 60%;
   text-align: right;
   padding: 0.2rem 0.5rem;
