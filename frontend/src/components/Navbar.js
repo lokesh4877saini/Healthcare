@@ -8,29 +8,35 @@ import Image from 'next/image';
 import { HiUserAdd } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import { useEffect, useState } from "react";
-import styles from "@/styles/Navbar.module.css";
+import SunnyIcon from '@mui/icons-material/Sunny';
+import NightlightIcon from '@mui/icons-material/Nightlight';
+import "@/styles/Navbar.css";
 import styles1 from '@/styles/NewBookingPage.module.css';
+import { useTheme } from '../context/ThemeContext';
+import { useScreen } from "@/context/ScreenProvider";
+
 export default function Navbar() {
+  const isMobile = useScreen();
   const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bookingDropdownOpen, setBookingDropdownOpen] = useState(false);
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return <main className={styles1.LoadingDiv}>
-  <p className={styles1.LoadingPara}>Loading...</p>
-</main>;
+    <p className={styles1.LoadingPara}>Loading...</p>
+  </main>;
 
   const toggleBookingDropdown = () => {
     setBookingDropdownOpen(!bookingDropdownOpen);
   };
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.logo}>
+    <nav className='navbar'>
+      <div className='logo'>
         <Link href="/">
           <Image
             src={"/images/logo.png"}
@@ -42,86 +48,117 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <div className={styles.burger} onClick={() => setMenuOpen(!menuOpen)}>
+      <div className='burger' onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <IoClose size={24} /> : <GiHamburgerMenu size={24} />}
       </div>
 
-      <div className={`${styles.links} ${menuOpen ? styles.active : ""}`}>
+      <div className={`links ${menuOpen ? `active` : ""}`}>
         {user ? (
           <>
             {user.role === "doctor" && (
-              <div 
-                className={`${styles.dropdown} ${bookingDropdownOpen ? styles.active : ""}`}
-                onMouseEnter={() => !menuOpen && setBookingDropdownOpen(true)}
-                onMouseLeave={() => !menuOpen && setBookingDropdownOpen(false)}
-              >
-                <button 
-                  onClick={toggleBookingDropdown}
-                  className={styles.dropdownToggle}
+              <>
+                <button
+                  onClick={toggleTheme}
+                  style={{
+                    marginBottom:  `${isMobile?'0.5rem':''}`,
+                    display: "inline",
+                    fontSize: "1rem",
+                    color: `${theme === 'light' ? "black" : "white"}`,
+                    borderRadius: "2rem",
+                    marginRight: `${isMobile?'13rem':''}`,
+                    textTransform: "capitalize",
+                    fontWeight: "800"
+                  }}
+                >{theme === 'light' ? (<><NightlightIcon/></>):(<><SunnyIcon/></>)}</button>
+                <div
+                  className={`dropdown ${bookingDropdownOpen ?'active' : ""}`}
+                  onMouseEnter={() => !menuOpen && setBookingDropdownOpen(true)}
+                  onMouseLeave={() => !menuOpen && setBookingDropdownOpen(false)}
                 >
-                  Bookings <IoChevronDown className={styles.dropdownArrow} />
-                </button>
-                <div className={styles.dropdownContent}>
-                  <Link href="/doctor/appointments" onClick={() => { 
-                    setMenuOpen(false); 
-                    setBookingDropdownOpen(false); 
-                  }}>
-                    View Bookings
-                  </Link>
-                  <Link href="/doctor/slots" onClick={() => { 
-                    setMenuOpen(false); 
-                    setBookingDropdownOpen(false); 
-                  }}>
-                    Manage Slots
-                  </Link>
+                  <button
+                    onClick={toggleBookingDropdown}
+                    className='dropdownToggle'
+                  >
+                    Bookings <IoChevronDown className='dropdownArrow' />
+                  </button>
+                  <div className='dropdownContent'>
+                    <Link href="/doctor/appointments" onClick={() => {
+                      setMenuOpen(false);
+                      setBookingDropdownOpen(false);
+                    }}>
+                      View Bookings
+                    </Link>
+                    <Link href="/doctor/slots" onClick={() => {
+                      setMenuOpen(false);
+                      setBookingDropdownOpen(false);
+                    }}>
+                      Manage Slots
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             {user.role === "patient" && (
-              <div 
-                className={`${styles.dropdown} ${bookingDropdownOpen ? styles.active : ""}`}
-                onMouseEnter={() => !menuOpen && setBookingDropdownOpen(true)}
-                onMouseLeave={() => !menuOpen && setBookingDropdownOpen(false)}
-              >
-                <button 
-                  onClick={toggleBookingDropdown}
-                  className={styles.dropdownToggle}
+              <>
+                <button
+                  onClick={toggleTheme}
+                  style={{
+                    marginBottom:  `${isMobile?'0.5rem':''}`,
+                    display: "inline",
+                    fontSize: "1rem",
+                    color: `${theme === 'light' ? "black" : "white"}`,
+                    borderRadius: "2rem",
+                    marginRight: `${isMobile?'13rem':''}`,
+                    textTransform: "capitalize",
+                    fontWeight: "800"
+                  }}
+                >{theme === 'light' ? (<><NightlightIcon/></>):(<><SunnyIcon/></>)}</button>
+                <div
+                  className={`dropdown ${bookingDropdownOpen ? `active` : ""}`}
+                  onMouseEnter={() => !menuOpen && setBookingDropdownOpen(true)}
+                  onMouseLeave={() => !menuOpen && setBookingDropdownOpen(false)}
                 >
-                  Bookings <IoChevronDown className={styles.dropdownArrow} />
-                </button>
-                <div className={styles.dropdownContent}>
-                  <Link href="/patients/new-booking" onClick={() => { 
-                    setMenuOpen(false); 
-                    setBookingDropdownOpen(false); 
-                  }}>
-                    Book Appointment
-                  </Link>
-                  <Link href="/patients/view-bookings" onClick={() => { 
-                    setMenuOpen(false); 
-                    setBookingDropdownOpen(false); 
-                  }}>
-                    My Bookings
-                  </Link>
-                  <Link href="/patients/doctors" onClick={() => { 
-                    setMenuOpen(false); 
-                    setBookingDropdownOpen(false); 
-                  }}>
-                    View Doctors
-                  </Link>
+                  <button
+                    onClick={toggleBookingDropdown}
+                    className='dropdownToggle'
+                  >
+                    Bookings <IoChevronDown className='dropdownArrow' />
+                  </button>
+                  <div className='dropdownContent'>
+                    <Link href="/patients/new-booking" onClick={() => {
+                      setMenuOpen(false);
+                      setBookingDropdownOpen(false);
+                    }}>
+                      Book Appointment
+                    </Link>
+                    <Link href="/patients/view-bookings" onClick={() => {
+                      setMenuOpen(false);
+                      setBookingDropdownOpen(false);
+                    }}>
+                      My Bookings
+                    </Link>
+                    <Link href="/patients/doctors" onClick={() => {
+                      setMenuOpen(false);
+                      setBookingDropdownOpen(false);
+                    }}>
+                      View Doctors
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
-            <Link href="/profile/me" onClick={() => setMenuOpen(false)}>
+            <Link href="/profile/me"
+              onClick={() => setMenuOpen(false)}>
               Profile
             </Link>
-            <button 
-              title="logout" 
-              className={styles.logout} 
-              onClick={() => { 
-                logout(); 
-                setMenuOpen(false); 
+            <button
+              title="logout"
+              className='logout'
+              onClick={() => {
+                logout();
+                setMenuOpen(false);
               }}
             >
               <IoLogOut /> <span>Logout</span>

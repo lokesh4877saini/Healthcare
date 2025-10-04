@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/DoctorDetailPage.module.css';
-import { fetcher } from '@/lib/api';
 const DoctorProfile = ({doctor}) => {
   const router = useRouter();
   const { user } = useAuth();

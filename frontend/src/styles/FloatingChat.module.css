@@ -6,8 +6,8 @@
 }
 
 .toggleButton {
-  background: #0070f3;
-  color: #fff;
+  background: var(--bg);
+  color: var(--link-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +20,7 @@
 }
 
 .toggleButton:hover {
-  background: #005bb5;
+  background: var(--bg);
 }
 
 .chatBox {
@@ -35,7 +35,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--box-shadow);
 }
 
 .messages {
@@ -57,19 +57,15 @@
 .messages::-webkit-scrollbar {
   width: 8px;
 }
-
 .messages::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: var(--scrollbar-track, #f1f1f1);
 }
-
 .messages::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--scrollbar-thumb, #888);
   border-radius: 4px;
 }
-
 .messages::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--scrollbar-thumb-hover, #555);
 }
 
 .user {
@@ -88,20 +84,22 @@
 
 .inputArea {
   display: flex;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border);
 }
 
 .inputArea input {
   flex: 1;
   border: none;
+  background: transparent;
+  color: var(--text-primary);
   padding: 10px;
   font-size: 14px;
   outline: none;
 }
 
 .inputArea button {
-  background: #0070f3;
-  color: #fff;
+  background: var(--bg);
+  color: var(--link-color);
   border: none;
   padding: 10px 15px;
   cursor: pointer;
@@ -109,10 +107,11 @@
 }
 
 .inputArea button:hover {
-  background: #005bb5;
+  background: var(--ai-bg);
+  color: var(--primary-hover);
 }
 
-/* ✅ New link buttons for explain_app */
+/* Link Buttons */
 .links {
   margin-top: 8px;
   display: flex;
@@ -122,8 +121,8 @@
 
 .linkButton {
   display: inline-block;
-  background: #0070f3;
-  color: #fff;
+  background: var(--primary);
+  color: var(--link-color);
   text-decoration: none;
   padding: 6px 12px;
   border-radius: 6px;
@@ -132,5 +131,5 @@
 }
 
 .linkButton:hover {
-  background: #005bb5;
+  background: var(--primary-hover);
 }

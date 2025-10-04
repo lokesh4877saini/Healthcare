@@ -1,8 +1,7 @@
 /* DoctorDetailPage.module.css */
 
 .page {
-  /* min-height: 100vh; */
-  background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
+  background: var(--bg);
   display: flex;
   border-radius: 20px;
   justify-content: center;

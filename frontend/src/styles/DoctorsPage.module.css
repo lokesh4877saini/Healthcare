@@ -1,9 +1,8 @@
 /* DoctorsPage.module.css */
 
 .page {
-    min-height: 100vh;
     border-radius: 20px;
-    background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
+    background: var(--bg);
     padding: 4rem 2rem;
     display: flex;
     flex-direction: column;
