@@ -157,7 +157,7 @@ export default function DoctorSlotsPage() {
                 </form>
                 {message && <p className={styles.message}>{message}</p>}
             </main>
-            <main className={styles.container2}>
+            <main className={styles.container}>
 
                 <h2 className={styles.heading}>Your Available Slots</h2>
                 {availableSlots.length > 0 ? (

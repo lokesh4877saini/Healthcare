@@ -1,13 +1,3 @@
-.container {
-  position: absolute;
-  top: 15px;
-  left: 40%;
-}
-.info {
-  border: none;
-  cursor: pointer;
-  background-color: #fff;
-}
 .board {
   display: flex;
   gap: 1rem;
@@ -35,27 +25,7 @@
   flex-shrink: 0;
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background-color: #fff;
-  border-left: 5px solid #4caf50;
-  /* dynamically change based on status */
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  cursor: grab;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  word-break: break-word;
-  /* prevent long text from overflowing */
-}
 
-.card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
 /* Two columns per row on tablets/foldables */
 @media (max-width: 1024px) {
   .column {
@@ -85,10 +55,5 @@
 
   .info {
     width: 100% !important;
-  }
-  .contentGraph{
-    /* display: flex !important; */
-    /* width: fit-content; */
-    /* flex-direction: column; */
   }
 }

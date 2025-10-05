@@ -15,18 +15,23 @@ export const AppointmentContent = ({
     date,
     time,
     status = "Pending",
+    theme
 }) => {
 
     const isMobile = useScreen();
     return (
-        <Stack spacing={1}>
+        <Stack spacing={1}
+      
+        >
             <Stack
                 direction={isMobile ? "column" : "row"}
                 justifyContent={isMobile ? "flex-start" : "space-between"}
                 alignItems={isMobile ? "flex-start" : "center"}
                 spacing={isMobile ? 1 : 0}
             >
-                <Stack direction={isMobile ? "column" : "row"} spacing={1} alignItems="center">
+                <Stack direction={isMobile ? "column" : "row"} spacing={1} alignItems="center"
+                  
+                >
                     {isMobile ? (<>
                         <Typography
                             variant={isMobile ? "body1" : "subtitle1"}
@@ -70,11 +75,15 @@ export const AppointmentContent = ({
                     }}
                 />
             </Stack>
-            <Stack spacing={1.2} sx={{ pl: 0.5 }}>
+            <Stack spacing={1.2} sx={{ pl: 0.5}}
+            
+            
+               
+            >
                 {isMobile ? (<>
                     <Typography
                         variant={isMobile ? "body2" : "body1"}
-                        color="text.primary"
+                        color={theme === 'dark'?'whitesmoke':'text.primary'}
                     >
                         {new Date(date).toDateString()}
                     </Typography>
@@ -82,11 +91,11 @@ export const AppointmentContent = ({
                     <Stack direction="row" spacing={1} alignItems="center">
                         <CalendarTodayIcon
                             fontSize={isMobile ? "small" : "medium"}
-                            sx={{ color: "primary.main" }}
+                            sx={{color:`${theme === 'dark'?'whitesmoke':'primary.main'}`, }}
                         />
                         <Typography
                             variant={isMobile ? "body2" : "body1"}
-                            color="text.primary"
+                            color={theme === 'dark'?'whitesmoke':'text.primary'}
                         >
                             {new Date(date).toDateString()}
                         </Typography>
@@ -98,7 +107,7 @@ export const AppointmentContent = ({
                         <>
                             <Typography
                                 variant={isMobile ? "body2" : "body1"}
-                                color="text.primary"
+                                color={theme === 'dark'?'whitesmoke':'text.primary'}
                             >
                                 {formatTime24to12(time.startTime)} to {formatTime24to12(time.endTime)}
                             </Typography>
@@ -107,11 +116,11 @@ export const AppointmentContent = ({
                         <>
                             <AccessTimeIcon
                                 fontSize={isMobile ? "small" : "medium"}
-                                sx={{ color: "primary.main" }}
+                                sx={{color:`${theme === 'dark'?'whitesmoke':'primary.main'}`, }}
                             />
                             <Typography
                                 variant={isMobile ? "body2" : "body1"}
-                                color="text.primary"
+                                color={theme === 'dark'?'whitesmoke':'text.primary'}
                             >
                                 {formatTime24to12(time.startTime)} - {formatTime24to12(time.endTime)}
                             </Typography>

@@ -6,9 +6,11 @@ import { AppointmentContent } from "./AppointmentContent";
 import { RenderActions } from "./RenderActions";
 import { getStatusColor } from "../../getStatusColor";
 import { useScreen } from "@/context/ScreenProvider";
+import { useTheme } from "@/context/ThemeContext";
 
 export function AppointmentCard({ appt, colId, provided, snapshot,status, onBookingUpdate }) {
   const {isMobile} = useScreen();
+  const {theme} = useTheme();
   return (
     <Card
       ref={provided.innerRef}
@@ -19,6 +21,8 @@ export function AppointmentCard({ appt, colId, provided, snapshot,status, onBook
         gap: 2,
         p: 1.5,
         mb: 1,
+        color:`${theme === 'dark'?'whitesmoke':'black'}`,
+        background:`${theme === 'dark'?'linear-gradient(135deg, #0a192f 0%, #1e2a4a 100%);':''}`,
         borderLeft: `5px solid ${getStatusColor(colId)}`,
         boxShadow: snapshot.isDragging ? 4 : 1,
         borderRadius: 2,
@@ -56,6 +60,7 @@ export function AppointmentCard({ appt, colId, provided, snapshot,status, onBook
           date={appt.date}
           time={appt.time}
           status={status}
+          theme={theme}
         />
 
         <RenderActions columnId={colId} id={appt.id} onBookingUpdate={onBookingUpdate} />

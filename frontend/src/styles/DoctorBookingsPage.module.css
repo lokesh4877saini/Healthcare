@@ -19,7 +19,7 @@
     height: 200%;
     background: radial-gradient(circle at 75% 75%, #00bfff 20%, transparent 50%),
                 radial-gradient(circle at 25% 25%, #0070f3 0%, transparent 50%);
-    z-index: -1;
+    z-index: -1; 
   }
   
   .heading {
@@ -31,16 +31,16 @@
   }
   .appointmentsContainer {
     position: relative;
-    height: 100vh;
+    border-radius: 2rem;
     padding: 2rem;
-    background-color: #f9f9f9;
+    background: var(--bg);
     width: 100%;
   }
   
   .appointmentsTitle {
     font-size: 24px;
     font-weight: bold;
-    color: #333;
+    color: var(--color);
     margin-bottom: 1rem;
   }
   
