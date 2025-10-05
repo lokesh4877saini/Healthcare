@@ -1,7 +1,6 @@
 /* Glassmorphic container */
 .container {
   position: relative;
-  /* height: 100vh; */
   max-width: 800px;
   margin: 5rem auto;
   padding: 3rem 2.5rem;

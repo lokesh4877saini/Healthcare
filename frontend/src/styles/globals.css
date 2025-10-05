@@ -16,9 +16,6 @@ a {
   margin-right: 1rem;
 }
 
-main {
-  padding: 2rem;
-}
 
 @media (max-width: 500px) {
   main {
@@ -33,6 +30,8 @@ main {
   --bg: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
   --surface: rgba(255, 255, 255, 0.85);
   --border: rgba(255, 255, 255, 0.2);
+  --mainbg:#ffff;
+  --color:#080808e1;
   --box-shadow: rgba(0, 0, 0, 0.2);
   --link-color: #fff;
   --link-hover-color: #00ff88;
@@ -50,6 +49,8 @@ main {
   --surface: rgba(255, 255, 255, 0.05);
   --border: rgba(255, 255, 255, 0.08);
   --box-shadow: rgba(0, 0, 0, 0.4);
+  --color:#ffff;
+  --mainbg:#0c0c0cef;
   --link-color: #e0f7fa;
   --link-hover-color: #00ff88;
   --ai-bg: #00ff88;
@@ -64,6 +65,11 @@ main {
 /* ------------------------------
    NAVBAR AND LINKS USING VARIABLES
 ------------------------------- */
+main {
+  padding: 2rem;
+  background-color: var(--mainbg);
+
+}
 
 .navbar {
   background: var(--bg);
