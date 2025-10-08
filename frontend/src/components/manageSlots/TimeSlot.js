@@ -34,7 +34,7 @@ export default function TimeSlot({ slot, onEdit, onDelete, variant = 'default' }
                     className={styles.deleteBtn}
                     onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(slot.id);
+                        onDelete(slot,{startTime:slot.startTime,endTime:slot.endTime});
                     }}
                     aria-label="Delete slot"
                 >

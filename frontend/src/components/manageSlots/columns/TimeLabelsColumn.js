@@ -3,13 +3,13 @@ import styles from '@/styles/DoctorSlotsPage.module.css';
 export default function TimeLabelsColumn() {
     const timeSlots = [];
 
-    for (let hour = 8; hour <= 19; hour++) {
+    for (let hour = 8; hour <= 23; hour++) {
         const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
         const period = hour >= 12 ? 'PM' : 'AM';
 
         timeSlots.push(`${displayHour} ${period}`);
 
-        if (hour < 19) {
+        if (hour < 23) {
             timeSlots.push(`${displayHour}:30 ${period}`);
         }
     }

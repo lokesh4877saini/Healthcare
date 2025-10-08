@@ -1,15 +1,14 @@
 import { useState, useRef } from 'react';
-import TimeSlot from './TimeSlot';
+import TimeSlot from '../TimeSlot';
 import styles from '@/styles/DoctorSlotsPage.module.css';
 import { getCleanTimeFromPosition, getEndTimeFromStartTime, getTimeFromPosition, getTimePosition } from '@/lib/formatters';
 
-export default function DayColumn({ day, date, slots, onAddSlot, onEditSlot, onDeleteSlot, isToday = false }) {
+export default function DayColumn({ day, date,dateObj, slots, onAddSlot, onEditSlot, onDeleteSlot, isToday = false }) {
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectionStart, setSelectionStart] = useState(null);
     const [currentSelection, setCurrentSelection] = useState(null);
     const columnRef = useRef(null);
     const dragStartRef = useRef(null);
-
     // Helper function to get display duration as number
     const getDisplayDuration = (pixels) => {
         const exactHours = pixels / 60;
@@ -92,7 +91,7 @@ export default function DayColumn({ day, date, slots, onAddSlot, onEditSlot, onD
             });
 
             if (!overlaps) {
-                onAddSlot(day, startTime, endTime, duration);
+                onAddSlot(dateObj, startTime, endTime, duration);
             }
         }
 

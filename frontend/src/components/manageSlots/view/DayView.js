@@ -1,5 +1,5 @@
-import TimeLabelsColumn from './TimeLabelsColumn';
-import DayColumn from './DayColumn';
+import TimeLabelsColumn from '../columns/TimeLabelsColumn';
+import DayColumn from '../columns/DayColumn';
 import styles from '@/styles/DoctorSlotsPage.module.css';
 
 export default function DayView({ currentDate, slots, onAddSlot, onEditSlot, onDeleteSlot }) {
@@ -14,6 +14,7 @@ export default function DayView({ currentDate, slots, onAddSlot, onEditSlot, onD
                     day={currentDate.toLocaleDateString('en-US', { weekday: 'short' })}
                     date={currentDate.getDate()}
                     slots={slots}
+                    dateObj={currentDate}
                     onAddSlot={onAddSlot}
                     onEditSlot={onEditSlot}
                     onDeleteSlot={onDeleteSlot}

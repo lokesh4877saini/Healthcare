@@ -4,6 +4,52 @@ import { format, parseISO } from 'date-fns';
 export function formatDate(dateString) {
   return format(parseISO(dateString), 'EEEE, MMMM do, yyyy');
 }
+export function convertTo24Hour(time12h) {  
+  // Handle empty or null input
+  if (!time12h) return '00:00';
+  
+  // Convert to uppercase and trim
+  const time = time12h.toUpperCase().trim();
+
+  // Use regex to extract time part and modifier more flexibly
+  const match = time.match(/^(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?$/i);
+  
+  if (!match) {
+    throw new Error('Invalid time format');
+  }
+
+  let hours = parseInt(match[1], 10);
+  let minutes = match[2] ? parseInt(match[2], 10) : 0; // Default to 0 if minutes missing
+  const modifier = match[3] || 'AM'; // Default to AM if modifier missing
+
+  // Validate inputs
+  if (hours < 1 || hours > 12) {
+    throw new Error('Hours must be between 1 and 12');
+  }
+  
+  if (minutes < 0 || minutes > 59) {
+    throw new Error('Minutes must be between 0 and 59');
+  }
+
+  // Convert to 24-hour format
+  if (modifier === 'PM' && hours !== 12) {
+    hours += 12;
+  }
+  if (modifier === 'AM' && hours === 12) {
+    hours = 0;
+  }
+
+  // Pad with leading zeros
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+// Add this helper function
+export const formatDateToBackend = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // "2025-09-26"
+};
 
 // Convert single "HH:mm" to "h:mm AM/PM"
 export function formatTime24to12(timeString) {
@@ -14,6 +60,21 @@ export function formatTime24to12(timeString) {
   date.setMinutes(minute);
   return format(date, 'h:mm a'); // e.g. 1:23 PM
 }
+
+export function formatDayToDate(dayString) {
+  // Parse your passed-in date string
+  const dateObj = new Date(dayString);
+
+  // Check if valid
+  if (isNaN(dateObj)) {
+    throw new Error("Invalid date string provided");
+  }
+
+  // Return the same style string
+  return dateObj.toString();
+}
+
+
 
 // Format a range: startTime + endTime
 export function formatTimeRange(startTime, endTime) {
