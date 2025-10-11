@@ -1,5 +1,4 @@
 'use client';
-import { toast } from 'react-toastify'
 import { convertTo24Hour, formatDateToBackend, formatTime24to12 } from '@/lib/formatters';
 import { manageSlotService } from '@/services/manageSlotService';
 import { showToast } from '@/lib/utils/toast';
@@ -82,10 +81,9 @@ export function useSlotManager(setAvailableSlots, fetchSlots) {
   };
 
   const handleEditSlot = (setAvailableSlots) => (slot) => {
-    const newTitle = prompt('Enter new title:', slot.title);
-    if (newTitle) {
+    if(slot){
       setAvailableSlots(prev =>
-        prev.map(s => s.id === slot.id ? { ...s, title: newTitle } : s)
+        prev.map(s => s.id === slot.id ? { ...s, title: slot.title,description:slot.description } : s)
       );
     }
   };
