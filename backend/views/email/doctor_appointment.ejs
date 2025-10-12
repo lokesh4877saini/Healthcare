@@ -1,0 +1,33 @@
+<%- include('base_template', {
+    subject: `New Appointment Scheduled - ${date}`,
+    body: `
+        <div class="greeting">Dr. ${name},</div>
+        
+        <div class="message">
+            You have a new appointment scheduled. Here are the patient details:
+        </div>
+        
+        <div class="appointment-details">
+            <div class="detail-title">Appointment Information</div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Patient Name:</span>
+                <span class="detail-value">${patientName}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">${date}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">${time}</span>
+            </div>
+        </div>
+        
+        <div class="message">
+            This appointment has been added to your schedule.
+        </div>
+    `
+}) %>
