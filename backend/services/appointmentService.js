@@ -15,13 +15,16 @@ class AppointmentService {
 
     // Get patient details and send emails
     const patient = await User.findById(patientId);
-    await EmailService.sendAppointmentConfirmation(doctor, patient, {
+    const emailResult = await EmailService.sendAppointmentConfirmation(doctor, patient, {
       date,
       startTime,
       endTime
     });
+    
+    // Schedule reminder
 
-    return booking;
+    // await EmailService.scheduleAppointmentReminder(booking, 24);
+    return { booking, emailResult };
   }
 }
 

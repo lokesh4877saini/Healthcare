@@ -5,16 +5,18 @@ const BookingService = require('../services/bookingService');
 exports.bookAppointment = catchAsyncError(async (req, res, next) => {
   const { doctorId, date, startTime, endTime } = req.body;
 
-  const booking = await AppointmentService.bookAppointment(
-    doctorId, 
-    req.user._id, 
+  const { booking, emailResult } = await AppointmentService.bookAppointment(
+    doctorId,
+    req.user._id,
     { date, startTime, endTime }
   );
 
   res.status(201).json({
     success: true,
     message: "Appointment booked successfully",
-    data: booking
+    emailQueued: emailResult.queued,
+    emailFallback: emailResult.fallback,
+    reminderScheduled: true,              //Reminder
   });
 });
 
@@ -35,10 +37,10 @@ exports.deleteBooking = catchAsyncError(async (req, res, next) => {
 
 exports.rescheduleBooking = catchAsyncError(async (req, res, next) => {
   const { date, time, forceCreateSlot } = req.body;
-  
+
   const result = await BookingService.rescheduleBooking(
-    req.params.id, 
-    req.user._id, 
+    req.params.id,
+    req.user._id,
     { date, time, forceCreateSlot }
   );
 

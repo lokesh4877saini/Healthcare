@@ -17,13 +17,12 @@ const sendEmail = async (options) => {
 
         const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf-8');
 
-        // FIX: Provide the correct context for EJS includes
         htmlContent = ejs.render(emailTemplate, {
             ...options,
             subject: options.subject,
             email: options.email
         }, {
-            filename: emailTemplatePath, // This helps EJS find relative includes
+            filename: emailTemplatePath, //find relative includes
             root: path.join(__dirname, '../views/email'), // Set root directory for includes
             views: [path.join(__dirname, '../views/email')] // Specify views directory
         });
@@ -38,7 +37,7 @@ const sendEmail = async (options) => {
         });
 
         const mailOptions = {
-            from: `"HealthCare Pro" <${process.env.SMTP_MAIL}>`,
+            from: `"nextLevel HealthCare App" <${process.env.SMTP_MAIL}>`,
             to: options.email,
             subject: options.subject,
             html: htmlContent,
