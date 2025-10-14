@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= subject %></title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Header with your gradient */
+        .email-header {
+            background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .logo-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Content sections */
+        .email-content {
+            padding: 40px;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        
+        /* Appointment details */
+        .appointment-details {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #0070f3;
+        }
+        
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .detail-value {
+            color: #1e293b;
+            font-weight: 500;
+        }
+        
+        /* Instructions section */
+        .instructions {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .instructions-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #9a3412;
+            margin-bottom: 10px;
+        }
+        
+        .instructions-list {
+            list-style: none;
+            color: #7c2d12;
+        }
+        
+        .instructions-list li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .instructions-list li:before {
+            content: "•";
+            color: #ea580c;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background: #1e293b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .contact-info {
+            margin-bottom: 20px;
+        }
+        
+        .contact-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .contact-item strong {
+            color: #60a5fa;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-link {
+            display: inline-block;
+            color: #cbd5e1;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        .copyright {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 20px;
+            border-top: 1px solid #334155;
+            padding-top: 20px;
+        }
+        
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .email-content {
+                padding: 25px;
+            }
+            
+            .email-header {
+                padding: 20px;
+            }
+            
+            .greeting {
+                font-size: 20px;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+            }
+            
+            .detail-value {
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header Section -->
+        <div class="email-header">
+            <div class="logo">HealthCare Pro</div>
+            <div class="logo-subtitle">Your Trusted Healthcare Partner</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="email-content">
+            <%- body %>
+        </div>
+        
+        <!-- Footer Section -->
+        <div class="email-footer">
+            <div class="contact-info">
+                <div class="contact-item">
+                    <strong>Address:</strong> 123 Medical Center, Healthcare District, City 12345
+                </div>
+                <div class="contact-item">
+                    <strong>Phone:</strong> +1 (555) 123-HEAL
+                </div>
+                <div class="contact-item">
+                    <strong>Email:</strong> support@healthcarepro.com
+                </div>
+                <div class="contact-item">
+                    <strong>Emergency:</strong> 24/7 Available
+                </div>
+            </div>
+            
+            <div class="social-links">
+                <a href="https://healthcare-dp.vercel.app/" class="social-link">Website</a>
+                <a href="#" class="social-link">Facebook</a>
+                <a href="#" class="social-link">Twitter</a>
+                <a href="#" class="social-link">LinkedIn</a>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 HealthCare Pro. All rights reserved.<br>
+                This email was sent to <%= email %>. Please do not reply to this email.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

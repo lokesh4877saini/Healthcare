@@ -1,0 +1,44 @@
+<%- include('base_template', {
+    subject: `Appointment Confirmation with Dr. ${doctorName}`,
+    body: `
+        <div class="greeting">Hello ${name},</div>
+        
+        <div class="message">
+            Your appointment has been successfully booked. We're looking forward to seeing you!
+            Please find your appointment details below:
+        </div>
+        
+        <div class="appointment-details">
+            <div class="detail-title">Appointment Details</div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Doctor:</span>
+                <span class="detail-value">Dr. ${doctorName}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">${date}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">${time}</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <div class="instructions-title">Before Your Visit:</div>
+            <ul class="instructions-list">
+                <li>Arrive 15 minutes before your scheduled appointment time</li>
+                <li>Bring your insurance card and photo ID</li>
+                <li>Bring any current medications you are taking</li>
+            </ul>
+        </div>
+        
+        <div class="message">
+            <strong>Need to reschedule?</strong><br>
+            Please call us at +1 (555) 123-HEAL at least 24 hours in advance.
+        </div>
+    `
+}) %>
