@@ -1,61 +1,84 @@
 const User = require('../models/user');
+const mongoose = require('mongoose');
 const catchAsyncErrors = require('../middleware/catchAsyncError');
 const ErrorHandler = require('../utils/ErrorHandler');
+
 exports.addDoctorSlots = catchAsyncErrors(async (req, res, next) => {
-  const { date, slots } = req.body;
-
-  if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
-    return next(new ErrorHandler("Date and slots are required", 400));
-  }
-
+  const { date, startTime, endTime } = req.body;
   const user = await User.findById(req.user._id);
 
   if (user.role !== 'doctor') {
     return next(new ErrorHandler("Only doctors can add slots", 403));
   }
 
-  // Find existing slots for the date
-  let existingSlot = user.availableSlots.find(slot => slot.date === date);
+  // Find existing slots for THIS SPECIFIC DATE only
+  const existingDateSlot = user.availableSlots.find(slot => slot.date === date);
+  // Time validation
+  const [newStartHour, newStartMin] = startTime.split(':').map(Number);
+  const [newEndHour, newEndMin] = endTime.split(':').map(Number);
 
-  // Initialize slots array if not present
-  if (!existingSlot) {
-    existingSlot = { date, slots: [] };
-    user.availableSlots.push(existingSlot);
+  if (newEndHour < newStartHour || (newEndHour === newStartHour && newEndMin <= newStartMin)) {
+    return next(new ErrorHandler(`Invalid slot: endTime must be after startTime`, 400));
   }
 
-  // Check for overlapping slots
-  for (const newSlot of slots) {
-    const [newStartHour, newStartMin] = newSlot.startTime.split(':').map(Number);
-    const [newEndHour, newEndMin] = newSlot.endTime.split(':').map(Number);
-    const newStart = new Date(0, 0, 0, newStartHour, newStartMin);
-    const newEnd = new Date(0, 0, 0, newEndHour, newEndMin);
+  // OVERLAP CHECK - Only check slots on the SAME DATE
+  if (existingDateSlot && existingDateSlot.slots.length > 0) {
+    const hasOverlap = existingDateSlot.slots.some(existingSlot => {
+      const [existStartHour, existStartMin] = existingSlot.startTime.split(':').map(Number);
+      const [existEndHour, existEndMin] = existingSlot.endTime.split(':').map(Number);
 
-    if (newEnd <= newStart) {
-      return next(new ErrorHandler(`Invalid slot: endTime must be after startTime (${newSlot.startTime} - ${newSlot.endTime})`, 400));
-    }
+      // Convert to minutes for easy comparison
+      const newStartMinutes = newStartHour * 60 + newStartMin;
+      const newEndMinutes = newEndHour * 60 + newEndMin;
+      const existStartMinutes = existStartHour * 60 + existStartMin;
+      const existEndMinutes = existEndHour * 60 + existEndMin;
 
-    const isOverlap = existingSlot.slots.some(existing => {
-      const [existStartHour, existStartMin] = existing.startTime.split(':').map(Number);
-      const [existEndHour, existEndMin] = existing.endTime.split(':').map(Number);
-      const existStart = new Date(0, 0, 0, existStartHour, existStartMin);
-      const existEnd = new Date(0, 0, 0, existEndHour, existEndMin);
-
-      return newStart < existEnd && newEnd > existStart; // overlapping check
+      // Check for overlap
+      const overlaps = (newStartMinutes < existEndMinutes && newEndMinutes > existStartMinutes);
+      return overlaps;
     });
 
-    if (isOverlap) {
-      return next(new ErrorHandler(`Slot overlaps with existing slot: ${newSlot.startTime} - ${newSlot.endTime}`, 400));
+    if (hasOverlap) {
+      return next(new ErrorHandler(`Slot overlaps with existing slot on ${date}`, 400));
     }
-
-    // Add valid new slot
-    existingSlot.slots.push(newSlot);
   }
 
-  await user.save();
+
+  // Add the slot (using your existing MongoDB update code)
+  const result = await User.updateOne(
+    { _id: req.user._id, 'availableSlots.date': date },
+    {
+      $push: {
+        'availableSlots.$.slots': {
+          startTime: startTime,
+          endTime: endTime,
+          _id: new mongoose.Types.ObjectId()
+        }
+      }
+    }
+  );
+
+  if (result.modifiedCount === 0) {
+    await User.updateOne(
+      { _id: req.user._id },
+      {
+        $push: {
+          availableSlots: {
+            date: date,
+            slots: [{
+              startTime: startTime,
+              endTime: endTime,
+              _id: new mongoose.Types.ObjectId()
+            }]
+          }
+        }
+      }
+    );
+  }
 
   res.status(200).json({
     success: true,
-    message: "Slots updated successfully",
+    message: "Slot added successfully"
   });
 });
 
@@ -123,10 +146,9 @@ exports.getDoctorsBySpecialization = catchAsyncErrors(async (req, res, next) => 
   });
 });
 exports.deleteSingleTimeSlot = catchAsyncErrors(async (req, res, next) => {
-  const { date, time } = req.body;
-
-  if (!date || !time) {
-    return next(new ErrorHandler('Date and time are required', 400));
+  const { date, startTime, endTime } = req.body;
+  if (!date || !startTime || !endTime) {
+    return next(new ErrorHandler('Date, startTime and endTime are required', 400));
   }
 
   const user = await User.findById(req.user._id);
@@ -134,27 +156,34 @@ exports.deleteSingleTimeSlot = catchAsyncErrors(async (req, res, next) => {
   if (user.role !== 'doctor') {
     return next(new ErrorHandler('Only doctors can update slots', 403));
   }
-
-  const slot = user.availableSlots.find(slot => slot.date === date);
-
-  if (!slot) {
+  // Find the date slot
+  const dateSlot = user.availableSlots.find(slot => slot.date === date);
+  if (!dateSlot) {
     return next(new ErrorHandler('No slots found for this date', 404));
   }
 
-  // Filter out the specific time
-  slot.time = slot.time.filter(t => t !== time);
+  // Find the slot by startTime and endTime
+  const slotIndex = dateSlot.slots.findIndex(slot =>
+    slot.startTime === startTime && slot.endTime === endTime
+  );
 
-  // If no times left, remove the entire date entry
-  if (slot.time.length === 0) {
-    user.availableSlots = user.availableSlots.filter(s => s.date !== date);
+  if (slotIndex === -1) {
+    return next(new ErrorHandler(`Time slot ${startTime} - ${endTime} not found for ${date}`, 404));
+  }
+
+  // Remove the specific time slot
+  dateSlot.slots.splice(slotIndex, 1);
+
+  // If no slots left for this date, remove the entire date entry
+  if (dateSlot.slots.length === 0) {
+    user.availableSlots = user.availableSlots.filter(slot => slot.date !== date);
   }
 
   await user.save();
 
   res.status(200).json({
     success: true,
-    message: `Time ${time} on ${date} deleted successfully.`,
-    availableSlots: user.availableSlots
+    message: `Time slot ${startTime} - ${endTime} on ${date} deleted successfully.`
   });
 });
 
@@ -184,8 +213,7 @@ exports.deleteAllSlotsForDate = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: `All slots for ${date} deleted successfully.`,
-    availableSlots: user.availableSlots
+    message: `All slots for ${date} deleted successfully.`
   });
 });
 

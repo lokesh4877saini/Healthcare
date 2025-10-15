@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DoctorAppointmentsBoard from "./view/board/DoctorAppointmentsBoard";
 import styles1 from '@/styles/NewBookingPage.module.css';
 import styles from '@/styles/DoctorBookingsPage.module.css';
-import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
+// import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
 import { Grid3x3 } from "@mui/icons-material";
 import { RiLayout2Line } from "react-icons/ri";
 import { useAppointments } from "@/hooks/Appointments/useAppointments";
