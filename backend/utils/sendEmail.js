@@ -37,13 +37,14 @@ const sendEmail = async (options) => {
         });
 
         const mailOptions = {
-            from: `"nextLevel HealthCare App" <${process.env.SMTP_MAIL}>`,
+            from: `"TechHealthCare" <${process.env.SMTP_MAIL}>`,
             to: options.email,
             subject: options.subject,
             html: htmlContent,
         };
 
         await transporter.sendMail(mailOptions);
+        
         return true;
 
     } catch (error) {

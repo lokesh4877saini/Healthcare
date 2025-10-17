@@ -1,5 +1,6 @@
 const BookingService = require('./bookingService');
 const EmailService = require('./emailService');
+const {formatTime24to12,formatDate}= require('../utils/formatters');
 const User = require('../models/user');
 
 class AppointmentService {
@@ -12,13 +13,13 @@ class AppointmentService {
     await BookingService.checkOverlappingAppointments(doctorId, date, startTime, endTime);
     
     const booking = await BookingService.createBooking(doctorId, patientId, date, startTime, endTime);
-
+    
     // Get patient details and send emails
     const patient = await User.findById(patientId);
     const emailResult = await EmailService.sendAppointmentConfirmation(doctor, patient, {
-      date,
-      startTime,
-      endTime
+      date:formatDate(date),
+      startTime: formatTime24to12(startTime),
+      endTime: formatTime24to12(endTime)
     });
     
     // Schedule reminder
