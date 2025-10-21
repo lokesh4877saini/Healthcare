@@ -36,7 +36,7 @@ export default function SignupPage() {
       });
       if (res.success) {
         setMessage('Registration successful! Please log in.');
-        router.push('/users/login'); // correct path!
+        router.push('/login'); // correct path!
       } else {
         // Show error message from backend if available
         setMessage(res.message || 'Signup failed.');
@@ -134,7 +134,7 @@ export default function SignupPage() {
       <div className={styles.orDivider}>
         <span>OR</span>
       </div>
-      <Link href="/users/login" className={styles.registerLink}>
+      <Link href="/login" className={styles.registerLink}>
         Login existing account
       </Link>              
       {message && <p className={styles.message}>{message}</p>}
