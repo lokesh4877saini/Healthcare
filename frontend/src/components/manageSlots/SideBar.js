@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import styles from '@/styles/DoctorSlotsPage.module.css';
-import { CalculateRounded, CalendarMonth, CalendarViewDay, Today, ViewWeek } from '@mui/icons-material';
+import { CalculateRounded, CalendarMonth, CalendarViewDay, Today, ViewWeek, VisibilityOutlined } from '@mui/icons-material';
 import { useScreen } from '@/context/ScreenProvider';
 const SideBar = ({ changeView, currentView, goToToday, isSidebarCollapsed, setIsSidebarCollapsed }) => {
     const isMobile = useScreen();
@@ -15,11 +15,11 @@ const SideBar = ({ changeView, currentView, goToToday, isSidebarCollapsed, setIs
                 <div className={styles.viewSelector}>
                     <div className={styles.selectorLabel}>View</div>
                     <div className={styles.viewButtons}>
-                        <button 
+                        <button
                             className={`${styles.viewOption} ${currentView === 'day' ? styles.viewOptionActive : ''}`}
                             onClick={() => changeView('day')}
                         >
-                            <CalculateRounded className={styles.viewIcon}  />
+                            <CalculateRounded className={styles.viewIcon} />
                         </button>
                         <button
                             className={`${styles.viewOption} ${currentView === 'month' ? styles.viewOptionActive : ''}`}
@@ -45,16 +45,23 @@ const SideBar = ({ changeView, currentView, goToToday, isSidebarCollapsed, setIs
             >
                 <div className={styles.sidebarHeader}>
                     <h1 className={styles.heading}>
-                        {isSidebarCollapsed ? 'SM' : 'Slot Management'}
+                        <span className={`${styles.headingText} ${isSidebarCollapsed ? styles.hidden : styles.visible}`}>
+                            Slot Management
+                        </span>
+                        <span className={`${styles.headingText} ${isSidebarCollapsed ? styles.visible : styles.hidden}`}>
+                            SM
+                        </span>
                     </h1>
                 </div>
 
                 <div className={styles.viewSelector}>
-                    <div
-                        className={`${styles.selectorLabel} ${isSidebarCollapsed ? styles.selectorLabelHidden : ''
-                            }`}
-                    >
-                        View Type
+                    <div className={styles.selectorLabel}>
+                        <span className={`${styles.labelText} ${isSidebarCollapsed ? styles.hidden : styles.visible}`}>
+                            View Type
+                        </span>
+                        <span className={`${styles.labelText} ${isSidebarCollapsed ? styles.visible : styles.hidden}`}>
+                            <VisibilityOutlined />
+                        </span>
                     </div>
                     <div className={styles.viewButtons}>
                         <button
