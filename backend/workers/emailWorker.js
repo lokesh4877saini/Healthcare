@@ -20,66 +20,123 @@ function startEmailWorker() {
   console.log(' Redis is ready, creating BullMQ worker...');
 
   try {
-    const worker = new Worker('healthcare-email-queue', async (job) => {
-      console.log(` Processing: ${job.name} - ${job.id}`);
+    const worker = new Worker(
+      'healthcare-email-queue',
+      async (job) => {
+        console.log(` Processing: ${job.name} - ${job.id}`);
 
-      try {
-        const { doctor, patient, appointmentDetails } = job.data;
+        try {
+          // --- CASE 1: OTP Email Verification ---
+          if (job.name === 'email-verification') {
+            const { user, otp } = job.data;
+            await sendEmail({
+              email: user.email,
+              subject: 'Your Account Verification OTP',
+              template: 'email_verification',
+              name: user.name,
+              otp,
+              message: `Use the OTP below to verify your account. It expires in 10 minutes.`,
+            });
+            console.log(`Verification email sent to ${user.email}`);
+            return { success: true, type: 'email-verification' };
+          }
 
-        // Send emails in parallel with error handling for each
-        const [doctorResult, patientResult] = await Promise.allSettled([
-          sendEmail({
-            email: doctor.email,
-            subject: `New Appointment - ${appointmentDetails.date}`,
-            template: 'doctor_appointment',
-            name: doctor.name,
-            patientName: patient.name,
-            date: appointmentDetails.date,
-            time: `${appointmentDetails.startTime} - ${appointmentDetails.endTime}`,
-            message: `You have a new appointment scheduled with ${patient.name}.`
-          }),
-          sendEmail({
-            email: patient.email,
-            subject: `Appointment Confirmed with Dr. ${doctor.name}`,
-            template: 'patient_confirmation',
-            name: patient.name,
-            doctorName: doctor.name,
-            date: appointmentDetails.date,
-            time: `${appointmentDetails.startTime} - ${appointmentDetails.endTime}`,
-            message: `Your appointment has been successfully booked.`
-          })
-        ]);
+          // --- CASE 2: Appointment Confirmation ---
+          if (job.name === 'appointment-confirmation') {
+            const { doctor, patient, appointmentDetails } = job.data;
 
-        // Check if both emails were sent successfully
-        const doctorSent = doctorResult.status === 'fulfilled' && doctorResult.value;
-        const patientSent = patientResult.status === 'fulfilled' && patientResult.value;
+            const [doctorResult, patientResult] = await Promise.allSettled([
+              sendEmail({
+                email: doctor.email,
+                subject: `New Appointment - ${appointmentDetails.date}`,
+                template: 'doctor_appointment',
+                name: doctor.name,
+                patientName: patient.name,
+                date: appointmentDetails.date,
+                time: `${appointmentDetails.startTime} - ${appointmentDetails.endTime}`,
+                message: `You have a new appointment scheduled with ${patient.name}.`,
+              }),
+              sendEmail({
+                email: patient.email,
+                subject: `Appointment Confirmed with Dr. ${doctor.name}`,
+                template: 'patient_confirmation',
+                name: patient.name,
+                doctorName: doctor.name,
+                date: appointmentDetails.date,
+                time: `${appointmentDetails.startTime} - ${appointmentDetails.endTime}`,
+                message: `Your appointment has been successfully booked.`,
+              }),
+            ]);
 
-        if (!doctorSent || !patientSent) {
-          const errors = [];
-          if (doctorResult.status === 'rejected') errors.push(`Doctor email: ${doctorResult.reason.message}`);
-          if (patientResult.status === 'rejected') errors.push(`Patient email: ${patientResult.reason.message}`);
-          throw new Error(`Partial email failure: ${errors.join(', ')}`);
+            const doctorSent =
+              doctorResult.status === 'fulfilled' && doctorResult.value;
+            const patientSent =
+              patientResult.status === 'fulfilled' && patientResult.value;
+
+            if (!doctorSent || !patientSent) {
+              const errors = [];
+              if (doctorResult.status === 'rejected')
+                errors.push(`Doctor email: ${doctorResult.reason.message}`);
+              if (patientResult.status === 'rejected')
+                errors.push(`Patient email: ${patientResult.reason.message}`);
+              throw new Error(`Partial email failure: ${errors.join(', ')}`);
+            }
+
+            console.log(` Emails sent successfully: ${job.id}`);
+            return {
+              success: true,
+              doctorEmail: doctorSent,
+              patientEmail: patientSent,
+              type: 'appointment-confirmation',
+            };
+          }
+
+          // --- CASE 3: Appointment Reminder ---
+          if (job.name === 'appointment-reminder') {
+            const { appointment } = job.data;
+            await sendEmail({
+              email: appointment.patient.email,
+              subject: `Reminder: Appointment with Dr. ${appointment.doctor.name}`,
+              template: 'appointment_reminder',
+              name: appointment.patient.name,
+              date: appointment.date,
+              time: `${appointment.startTime} - ${appointment.endTime}`,
+              message: `This is a friendly reminder for your appointment tomorrow.`,
+            });
+            console.log(` Reminder email sent to ${appointment.patient.email}`);
+            return { success: true, type: 'appointment-reminder' };
+          }
+
+          // --- CASE 4: Appointment Cancellation ---
+          if (job.name === 'appointment-cancellation') {
+            const { appointment, cancelledBy, reason } = job.data;
+            await sendEmail({
+              email: appointment.patient.email,
+              subject: 'Appointment Cancelled',
+              template: 'appointment_cancellation',
+              name: appointment.patient.name,
+              message: `Your appointment with Dr. ${appointment.doctor.name} on ${appointment.date} has been cancelled. Reason: ${reason}`,
+            });
+            console.log(` Cancellation email sent to ${appointment.patient.email}`);
+            return { success: true, type: 'appointment-cancellation' };
+          }
+
+          // --- DEFAULT FALLBACK ---
+          console.warn(` Unknown job type: ${job.name}`);
+          return { success: false, reason: 'Unknown job type' };
+        } catch (error) {
+          console.error(` Email job failed: ${job.id}`, error.message);
+          throw error; // BullMQ will retry this job
         }
-
-        console.log(` Emails sent successfully: ${job.id}`);
-        return { 
-          success: true, 
-          doctorEmail: doctorSent, 
-          patientEmail: patientSent 
-        };
-
-      } catch (error) {
-        console.error(` Email job failed: ${job.id}`, error.message);
-        throw error; // This will trigger BullMQ retry
+      },
+      {
+        connection: redisConnection.client,
+        concurrency: 1,
+        lockDuration: 30000,
+        removeOnComplete: { count: 50 },
+        removeOnFail: { count: 25 },
       }
-    }, {
-      connection: redisConnection.client,
-      concurrency: 1, // Reduced to 1 for stability with Upstash
-      lockDuration: 30000, // 30 seconds lock
-      removeOnComplete: { count: 50 }, // Keep only 50 completed jobs
-      removeOnFail: { count: 25 }, // Keep only 25 failed jobs
-    });
-
+    );
     // Event listeners with better logging
     worker.on('completed', (job, returnvalue) => {
       console.log(` Job completed: ${job.id}`, returnvalue);

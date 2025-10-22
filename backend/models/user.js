@@ -46,7 +46,13 @@ const userSchema = new mongoose.Schema({
                 }
             ]
         }
-    ],      
+    ],
+    otp: String,
+    otpExpire: Date,
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -81,4 +87,13 @@ userSchema.methods.getResetPasswordToken = async function () {
     this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     return resetToken;
 }
+// generate otp
+userSchema.methods.generateOtp = function () {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+    this.otp = hashedOtp;
+    this.otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    return otp;
+};
+
 module.exports = mongoose.model("user", userSchema);

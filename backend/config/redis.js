@@ -8,29 +8,24 @@ class RedisConnection {
     setupClient() {
         if (this.client) {
             this.client.disconnect();
-        }        
+        }
         if (process.env.REDIS_URL) {
             console.log('Creating Redis client...');
-            
+
             // Parse the REDIS_URL to ensure proper connection
             const redisUrl = process.env.REDIS_URL;
-            
+
             this.client = new Redis(redisUrl, {
                 maxRetriesPerRequest: null,
-                enableReadyCheck: false,
-                connectTimeout: 30000,
-                commandTimeout: 15000,
-                retryDelayOnFailover: 1000,
-                lazyConnect: true,
+                enableReadyCheck: true,       // let ioredis check server ready
+                connectTimeout: 30000,        // 30s connection timeout
+                commandTimeout: 15000,        // 15s per command timeout
+                lazyConnect: true,            // connect manually via connect()
                 keepAlive: 30000,
                 family: 4,
-                // Force using only the provided URL, no fallbacks
                 enableAutoPipelining: false,
                 autoResendUnfulfilledCommands: false,
                 autoResubscribe: false,
-                // Disable any local Redis fallback
-                retryDelayOnFailover: 0,
-                maxLoadingRetryTime: 0
             });
         } else {
             console.log(' REDIS_URL not found - Redis functionality disabled');

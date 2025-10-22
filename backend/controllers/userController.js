@@ -4,6 +4,7 @@ require('dotenv').config({ path: "back/config/config.env" })
 // const path = require('path');
 // const fs= require('fs');
 // const ejs = require('ejs');
+const EmailService = require('../services/emailService');
 const catchAsyncError = require('../middleware/catchAsyncError');
 const sendToken = require('../utils/jwtToken');
 const sendEmail = require('../utils/sendEmail');
@@ -15,6 +16,11 @@ exports.registerUser = catchAsyncError(async (req, res, next) => {
     const user = await User.create({
         name, email, password, role, specialization, phone
     });
+    // generate OTP
+    const otp = user.generateOtp();
+    await user.save({validateBeforeSave:false});
+    // queue otp email
+    await EmailService.sendEmailVerification(user,otp);
     sendToken(user, 201, res)
 }
 )
