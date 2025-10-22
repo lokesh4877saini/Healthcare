@@ -1,14 +1,40 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import TimeSlot from '../TimeSlot';
 import styles from '@/styles/DoctorSlotsPage.module.css';
 import { getCleanTimeFromPosition, getEndTimeFromStartTime, getTimeFromPosition, getTimePosition } from '@/lib/formatters';
 
-export default function DayColumn({ day, date,dateObj, slots, onAddSlot, onEditSlot, onDeleteSlot, isToday = false }) {
+export default function DayColumn({ day, date, dateObj, slots, onAddSlot, onEditSlot, onDeleteSlot, isToday = false }) {
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectionStart, setSelectionStart] = useState(null);
     const [currentSelection, setCurrentSelection] = useState(null);
     const columnRef = useRef(null);
     const dragStartRef = useRef(null);
+useEffect(() => {
+    const handleTouchMove = (e) => {
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        // Block scrolling if touch is within column
+        if (columnRef.current?.contains(target)) {
+            e.preventDefault();
+        }
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, {
+        passive: false,
+        capture: true,
+    });
+
+    return () => {
+        document.removeEventListener('touchmove', handleTouchMove, {
+            capture: true,
+        });
+    };
+}, []); 
+
+
+
+
     // Helper function to get display duration as number
     const getDisplayDuration = (pixels) => {
         const exactHours = pixels / 60;
@@ -149,6 +175,57 @@ export default function DayColumn({ day, date,dateObj, slots, onAddSlot, onEditS
         }
     };
 
+    const getTouchY = (touchEvent) => {
+        const touch = touchEvent.touches[0] || touchEvent.changedTouches[0];
+        const rect = columnRef.current.getBoundingClientRect();
+        return touch.clientY - rect.top;
+    };
+
+    const handleTouchStart = (e) => {
+        if (e.target.closest(`.${styles.timeSlot}`)) return;
+
+        const y = getTouchY(e);
+
+        dragStartRef.current = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+        };
+
+        setSelectionStart(y);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!dragStartRef.current || selectionStart === null) return;
+
+        const touch = e.touches[0];
+        const dragDistance = Math.sqrt(
+            Math.pow(touch.clientX - dragStartRef.current.x, 2) +
+            Math.pow(touch.clientY - dragStartRef.current.y, 2)
+        );
+
+        if (dragDistance < 3) return;
+
+        if (!isSelecting) {
+            setIsSelecting(true);
+            const startTime = getTimeFromPosition(selectionStart);
+            setCurrentSelection({ start: selectionStart, end: selectionStart, startTime });
+        }
+
+        const y = getTouchY(e);
+        const rect = columnRef.current.getBoundingClientRect();
+        const constrainedY = Math.max(0, Math.min(rect.height, y));
+
+        setCurrentSelection(prev => ({
+            ...prev,
+            end: constrainedY
+        }));
+    };
+
+    const handleTouchEnd = () => {
+        handleMouseUp();
+    };
+
+
     return (
         <div className={`${styles.dayColumn} ${isToday ? styles.todayColumn : ''}`}>
             <div className={`${styles.dayHeader} ${isToday ? styles.todayHeader : ''}`}>
@@ -163,6 +240,11 @@ export default function DayColumn({ day, date,dateObj, slots, onAddSlot, onEditS
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
             >
                 {isSelecting && currentSelection && (
                     <div style={getSelectionStyle()} className={styles.selectionOverlay}>

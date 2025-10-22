@@ -9,7 +9,7 @@ const SideBar = ({ changeView, currentView, goToToday, isSidebarCollapsed, setIs
         isMobile ? (
             <div className={`${styles.sidebar} ${styles.sidebarMobile}`}>
                 <div className={styles.sidebarHeader}>
-                    <h1 className={styles.heading}>SM</h1>
+                    <h1 className={styles.heading}>Management Slots</h1>
                 </div>
 
                 <div className={styles.viewSelector}>

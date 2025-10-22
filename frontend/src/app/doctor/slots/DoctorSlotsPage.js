@@ -8,8 +8,10 @@ import SlotHeader from '@/components/manageSlots/SlotHeader';
 import MainCalendar from '@/components/manageSlots/MainCalendar';
 import { useNavigationManager } from '@/hooks/slot/useNavigationManager';
 import { useSlotManager } from '@/hooks/slot/useSlotManager';
+import { useScreen } from '@/context/ScreenProvider';
 
 export default function DoctorSlotsPage() {
+    const isMobile = useScreen();
     const [availableSlots, setAvailableSlots] = useState([]);
     const [isMounted, setIsMounted] = useState(false);
     const [currentView, setCurrentView] = useState('month');
@@ -94,7 +96,7 @@ export default function DoctorSlotsPage() {
                 />
 
                 {/* Main Content */}
-                <div className={`${styles.mainContent} ${isSidebarCollapsed ? styles.mainContentExpanded : ''}`}>
+                <div className={`${styles.mainContent} ${isSidebarCollapsed ? styles.mainContentExpanded : ''} ${isMobile?styles.mainContentMobile:''}`}>
                     <SlotHeader
                         currentView={currentView}
                         selectedDate={selectedDate}

@@ -1267,7 +1267,9 @@
   padding: 24px;
   transition: all 0.3s ease;
 }
-
+.mainContentMobile{
+  padding-top: 10px;
+}
 .contentHeader {
   margin-bottom: 5px;
 }
@@ -1292,6 +1294,10 @@
   display: flex;
   gap: 10px;
   align-items: center;
+}
+.mobileNavigation{
+  justify-content: space-between;
+  width: 100%;
 }
 
 /* Base Nav Button */

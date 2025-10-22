@@ -1,9 +1,11 @@
+import { useScreen } from '@/context/ScreenProvider';
 import styles from '@/styles/DoctorSlotsPage.module.css';
 import { ArrowCircleLeft, ArrowCircleRight } from '@mui/icons-material';
 const Navigation = ({navigateNext,navigatePrevious}) => {
+    const isMobile = useScreen();
     return (
 
-        <div className={styles.navigation}>
+        <div className={`${styles.navigation} ${isMobile ? styles.mobileNavigation : ''}`}>
             <button
                 className={`${styles.navButton} ${styles.withText} ${styles.previous}`}
                 onClick={navigatePrevious}
