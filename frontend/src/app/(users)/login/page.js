@@ -76,7 +76,7 @@ export default function LoginPage() {
       <div className={styles.orDivider}>
         <span>OR</span>
       </div>
-      <Link href="/users/register" className={styles.registerLink}>
+      <Link href="/register" className={styles.registerLink}>
         Create an account
       </Link>
       {message && <p className={styles.message}>{message}</p>}
