@@ -28,25 +28,43 @@ A modern, full-stack healthcare booking system where patients can securely book,
 ## 📁 Project Structure
 ```bash
 root
-  └───src
-      ├───app
-      │   ├───doctor
-      │   │   ├───appointments
-      │   │   ├───slots
-      │   │   └───[id]
-      │   ├───patients
-      │   │   ├───new-booking
-      │   │   └───view-bookings
-      │   ├───profile
-      │   │   └───me
-      │   └───users
-      │       ├───login
-      │       └───register
-      ├───components
-      ├───context
-      ├───hooks
-      ├───lib
-      └───styles
+└───src
+    ├───app
+    │   ├───doctor
+    │   │   ├───appointments
+    │   │   │   └───view
+    │   │   │       ├───board
+    │   │   │       └───tab
+    │   │   ├───slots
+    │   │   └───[id]
+    │   ├───patients
+    │   │   ├───doctors
+    │   │   │   └───[id]
+    │   │   ├───new-booking
+    │   │   └───view-bookings
+    │   ├───profile
+    │   │   └───me
+    │   └───users
+    │       ├───login
+    │       └───register
+    ├───components
+    │   ├───cancelled
+    │   ├───completed
+    │   ├───manageSlots
+    │   │   ├───columns
+    │   │   └───view
+    │   └───upcomming
+    │       ├───AddNote
+    │       ├───cancel
+    │       └───Reschedule
+    ├───context
+    ├───hooks
+    │   ├───Appointments
+    │   └───slot
+    ├───lib
+    │   └───utils
+    ├───services
+    └───styles
 ```
 Project in Development
 
