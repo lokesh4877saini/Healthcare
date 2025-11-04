@@ -1,68 +1,58 @@
+require('module-alias/register');
+require('dotenv').config({ path: 'modules/core/config/config.env' });
+
 const app = require('./app');
-require('dotenv').config({ path: "./config/config.env" });
-const connection = require('./config/db');
-const { redisConnection } = require('./config/redis');
-const startEmailWorker = require('./workers/emailWorker'); // worker
+const connectDB = require('core/config/db');
+const { redisConnection } = require('core/config/redis');
+const { startAllWorkers } = require('core/jobs'); // centralized worker manager
+
 const PORT = process.env.PORT || 4001;
 
-// Connect to database
-connection();
+// Connect MongoDB
+connectDB();
 
-// Initialize Redis client with current environment variables
+// Initialize Redis client
 redisConnection.setupClient();
 
-// Variable to hold server instance
 let server;
 
-// Connect to Redis and then start worker
 async function initializeServer() {
   try {
     if (!redisConnection.client) {
-      console.log('Redis not configured - running without email queue');
+      console.warn('Redis not configured - running without queues');
     } else {
       await redisConnection.connect();
-      console.log('Redis connected successfully');
+      console.log(' Redis connected successfully');
 
-      // Start worker after short delay to ensure Redis is ready
+      // Start all background workers (email, appointment, etc.)
       setTimeout(() => {
-        const worker = startEmailWorker();
-        if (worker) {
-          console.log('Email Worker started successfully');
-        } else {
-          console.log('Failed to start Email Worker');
-        }
+        startAllWorkers();
       }, 1000);
     }
 
-    // app.listen(PORT, '0.0.0.0', () => {
-    //     console.log(`Server running on http://0.0.0.0:${PORT}`);
-    //   });
-
     // Start Express server
-    server = app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running at http://localhost:${PORT}`);
     });
 
   } catch (error) {
-    console.error('Failed to initialize Redis or server:', error.message);
+    console.error(' Failed to initialize Redis or server:', error.message);
     process.exit(1);
   }
 }
 
 initializeServer();
 
-// Test routes
+// Simple health route
 app.get('/', (req, res) => {
-  res.send("okey");
+  res.send(' Healthcare backend app is running...');
 });
 
-
-
-// Catch unhandled promise rejections
+// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err.message);
   console.error(err.stack);
-  console.log("Shutting down the server due to unhandled Promise Rejection");
+  console.log('Shutting down server due to unhandled promise rejection');
 
   if (server) {
     server.close(() => process.exit(1));

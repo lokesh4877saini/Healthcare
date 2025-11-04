@@ -6,12 +6,12 @@ A modern, full-stack healthcare booking system where patients can securely book,
 
 ## ✨ Features
 
-✅ Doctor & Patient Authentication (role-based)  
-✅ Book, reschedule, or cancel appointments  
-✅ Doctor availability & slots management  
-✅ Secure API with JWT and context-based auth  
-✅ Responsive design with modular CSS  
-✅ Attractive homepage with random doctor & patient showcase slider
+ Doctor & Patient Authentication (role-based)  
+ Book, reschedule, or cancel appointments  
+ Doctor availability & slots management  
+ Secure API with JWT and context-based auth  
+ Responsive design with modular CSS  
+ Attractive homepage with random doctor & patient showcase slider
 
 ---
 
