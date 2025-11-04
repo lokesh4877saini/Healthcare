@@ -1,44 +1,54 @@
 const catchAsyncError = require('core/middleware/catchAsyncError');
 const AppointmentService = require('appointment/appointment.service');
+const NotificationService = require('notification/notification.service');
 
-// Book a new appointment
+//Book a new appointm 
 exports.bookAppointment = catchAsyncError(async (req, res, next) => {
   const { doctorId, date, startTime, endTime } = req.body;
+  const patientId = req.user._id;
 
-  const { appointment, emailResult } = await AppointmentService.bookAppointment(
+  //Create appointment in DB
+  const appointment = await AppointmentService.createAppointment(
     doctorId,
-    req.user._id,
-    { date, startTime, endTime }
+    patientId,
+    date,
+    startTime,
+    endTime
   );
+
+  //Queue confirmation + reminder emails (non-blocking)
+  NotificationService.sendAppointmentConfirmation(doctorId, patientId, appointment)
+    .catch(err => console.error(' Failed to queue confirmation email:', err));
+
+  NotificationService.scheduleAppointmentReminder(appointment, 24)
+    .catch(err => console.error(' Failed to schedule reminder:', err));
 
   res.status(201).json({
     success: true,
-    message: "Appointment booked successfully",
-    emailQueued: emailResult.queued,
-    emailFallback: emailResult.fallback,
-    reminderScheduled: true, // Reminder
+    message: ' Appointment booked successfully.',
+    appointment,
   });
 });
 
-// Get all appointments for a doctor
+//Get all appointments for a doctor
 exports.getDoctorAppointments = catchAsyncError(async (req, res, next) => {
   const appointments = await AppointmentService.getDoctorAppointments(req.user._id);
   res.status(200).json({ success: true, appointments });
 });
 
-// Get all appointments for a patient
+//Get all appointments for a patient
 exports.getPatientAppointments = catchAsyncError(async (req, res, next) => {
   const appointments = await AppointmentService.getPatientAppointments(req.user._id);
   res.status(200).json({ success: true, appointments });
 });
 
-// Delete a specific appointment
-exports.deleteAppointment = catchAsyncError(async (req, res, next) => {
-  const result = await AppointmentService.deleteAppointment(req.params.id, req.user._id);
-  res.status(200).json({ success: true, message: result.message });
+//View appointment details
+exports.viewAppointmentDetails = catchAsyncError(async (req, res, next) => {
+  const appointment = await AppointmentService.getAppointmentDetails(req.params.id);
+  res.status(200).json({ success: true, appointment });
 });
 
-// Reschedule appointment
+//Reschedule appointment
 exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
   const { date, time, forceCreateSlot } = req.body;
 
@@ -52,9 +62,14 @@ exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
     return res.status(409).json({
       success: false,
       requiresConfirmation: true,
-      message: result.message
+      message: result.message,
     });
   }
+
+  // Send updated appointment info (optional email)
+  const appointment = await AppointmentService.findAppointmentById(req.params.id);
+  NotificationService.sendAppointmentConfirmation(appointment.doctor, appointment.patient, appointment)
+    .catch(err => console.error(' Failed to queue reschedule email:', err));
 
   res.status(200).json({
     success: true,
@@ -62,40 +77,46 @@ exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// View details of a specific appointment
-exports.viewAppointmentDetails = catchAsyncError(async (req, res, next) => {
-  const appointment = await AppointmentService.getAppointmentDetails(req.params.id);
-  res.json({ success: true, appointment });
+//@desc Cancel appointment
+exports.cancelAppointment = catchAsyncError(async (req, res, next) => {
+  const { author, role, content } = req.body;
+  const appointment = await AppointmentService.findAppointmentById(req.params.id);
+
+  const result = await AppointmentService.cancelAppointment(req.params.id, { author, role, content });
+
+  // Queue cancellation email
+  NotificationService.sendAppointmentCancellation(appointment, author, content)
+    .catch(err => console.error(' Failed to queue cancellation email:', err));
+
+  res.status(200).json({ success: true, message: result.message });
 });
 
-// Add or update note for an appointment
+//Add or update appointment not
 exports.updateAppointmentNote = catchAsyncError(async (req, res, next) => {
   const { author, role, content } = req.body;
   const result = await AppointmentService.updateAppointmentNote(req.params.id, { author, role, content });
-  res.json({ success: true, message: result.message });
+  res.status(200).json({ success: true, message: result.message });
 });
 
-// Cancel appointment
-exports.cancelAppointment = catchAsyncError(async (req, res, next) => {
-  const { author, role, content } = req.body;
-  const result = await AppointmentService.cancelAppointment(req.params.id, { author, role, content });
-  res.json({ success: true, message: result.message });
-});
-
-// Update appointment status
+//Update appointment status
 exports.updateAppointmentStatus = catchAsyncError(async (req, res, next) => {
   const { status } = req.body;
   const result = await AppointmentService.updateAppointmentStatus(req.params.id, status);
-  res.json({ success: true, message: result.message });
+  res.status(200).json({ success: true, message: result.message });
 });
 
-// Delete all appointments
+// Delete a specific appointment
+exports.deleteAppointment = catchAsyncError(async (req, res, next) => {
+  const result = await AppointmentService.deleteAppointment(req.params.id, req.user._id);
+  res.status(200).json({ success: true, message: result.message });
+});
+
+// Delete all appointments (admin)
 exports.deleteAllAppointments = catchAsyncError(async (req, res, next) => {
   const result = await AppointmentService.deleteAllAppointments();
-  res.json({
+  res.status(200).json({
     success: true,
     message: result.message,
-    deletedCount: result.deletedCount
+    deletedCount: result.deletedCount,
   });
 });
-
