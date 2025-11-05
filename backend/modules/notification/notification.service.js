@@ -7,84 +7,84 @@ class NotificationService {
     this.emailQueue = getEmailQueue();
   }
 
-  async sendEmailVerification(user, otp) {
-    try {
-      await this.emailQueue.addEmailVerification(user, otp);
-      return { success: true, message: 'Verification email queued successfully' };
-    } catch (error) {
-      console.error('Failed to queue verification email:', error.message);
-      return await this._sendImmediateVerificationFallback(user, otp);
-    }
-  }
+  // async sendEmailVerification(user, otp) {
+  //   try {
+  //     await this.emailQueue.addEmailVerification(user, otp);
+  //     return { success: true, message: 'Verification email queued successfully' };
+  //   } catch (error) {
+  //     console.error('Failed to queue verification email:', error.message);
+  //     return await this._sendImmediateVerificationFallback(user, otp);
+  //   }
+  // }
 
-  async sendAppointmentConfirmation(doctor, patient, appointmentDetails) {
-    try {
-      await this.emailQueue.addAppointmentConfirmation(doctor, patient, appointmentDetails);
-      return { success: true, message: 'Appointment confirmation queued successfully' };
-    } catch (error) {
-      console.error('Failed to queue appointment confirmation:', error.message);
-      return await this._sendImmediateAppointmentFallback(doctor, patient, appointmentDetails);
-    }
-  }
+  // async sendAppointmentConfirmation(doctor, patient, appointmentDetails) {
+  //   try {
+  //     await this.emailQueue.addAppointmentConfirmation(doctor, patient, appointmentDetails);
+  //     return { success: true, message: 'Appointment confirmation queued successfully' };
+  //   } catch (error) {
+  //     console.error('Failed to queue appointment confirmation:', error.message);
+  //     return await this._sendImmediateAppointmentFallback(doctor, patient, appointmentDetails);
+  //   }
+  // }
 
-  async scheduleAppointmentReminder(appointment, hoursBefore = 24) {
-    try {
-      const job = await this.emailQueue.addAppointmentReminder(appointment, hoursBefore);
-      if (job) {
-        return { success: true, message: `${hoursBefore}h reminder queued successfully` };
-      }
-      return { success: true, message: 'Appointment too soon for reminder' };
-    } catch (error) {
-      console.error('Failed to queue appointment reminder:', error.message);
-      throw new ErrorHandler('Failed to queue appointment reminder', 500);
-    }
-  }
+  // async scheduleAppointmentReminder(appointment, hoursBefore = 24) {
+  //   try {
+  //     const job = await this.emailQueue.addAppointmentReminder(appointment, hoursBefore);
+  //     if (job) {
+  //       return { success: true, message: `${hoursBefore}h reminder queued successfully` };
+  //     }
+  //     return { success: true, message: 'Appointment too soon for reminder' };
+  //   } catch (error) {
+  //     console.error('Failed to queue appointment reminder:', error.message);
+  //     throw new ErrorHandler('Failed to queue appointment reminder', 500);
+  //   }
+  // }
 
-  async sendAppointmentCancellation(appointment, cancelledBy, reason) {
-    try {
-      await this.emailQueue.addAppointmentCancellation(appointment, cancelledBy, reason);
-      return { success: true, message: 'Appointment cancellation queued successfully' };
-    } catch (error) {
-      console.error('Failed to queue appointment cancellation:', error.message);
-      return await this._sendImmediateCancellationFallback(appointment, cancelledBy, reason);
-    }
-  }
+  // async sendAppointmentCancellation(appointment, cancelledBy, reason) {
+  //   try {
+  //     await this.emailQueue.addAppointmentCancellation(appointment, cancelledBy, reason);
+  //     return { success: true, message: 'Appointment cancellation queued successfully' };
+  //   } catch (error) {
+  //     console.error('Failed to queue appointment cancellation:', error.message);
+  //     return await this._sendImmediateCancellationFallback(appointment, cancelledBy, reason);
+  //   }
+  // }
 
-  async sendDirectEmail({ email, subject, template, data }) {
-    try {
-      await sendEmail({ email, subject, template, ...data });
-      return { success: true, message: 'Email sent directly' };
-    } catch (error) {
-      console.error('Direct email send failed:', error.message);
-      throw new ErrorHandler('Direct email send failed', 500);
-    }
-  }
+  // async sendDirectEmail({ email, subject, template, data }) {
+  //   try {
+  //     await sendEmail({ email, subject, template, ...data });
+  //     return { success: true, message: 'Email sent directly' };
+  //   } catch (error) {
+  //     console.error('Direct email send failed:', error.message);
+  //     throw new ErrorHandler('Direct email send failed', 500);
+  //   }
+  // }
 
-  async getQueueStats() {
-    try {
-      return await this.emailQueue.getStats();
-    } catch (error) {
-      console.error('Failed to fetch email queue stats:', error.message);
-      return null;
-    }
-  }
+  // async getQueueStats() {
+  //   try {
+  //     return await this.emailQueue.getStats();
+  //   } catch (error) {
+  //     console.error('Failed to fetch email queue stats:', error.message);
+  //     return null;
+  //   }
+  // }
 
-  async _sendImmediateVerificationFallback(user, otp) {
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Your Account Verification OTP',
-        template: 'email_verification',
-        name: user.name,
-        otp,
-        message: 'Use this OTP to verify your account. It expires in 10 minutes.',
-      });
-      return { success: true, queued: false, fallback: true };
-    } catch (error) {
-      console.error('Verification fallback failed:', error.message);
-      return { success: false, error: error.message };
-    }
-  }
+  // async _sendImmediateVerificationFallback(user, otp) {
+  //   try {
+  //     await sendEmail({
+  //       email: user.email,
+  //       subject: 'Your Account Verification OTP',
+  //       template: 'email_verification',
+  //       name: user.name,
+  //       otp,
+  //       message: 'Use this OTP to verify your account. It expires in 10 minutes.',
+  //     });
+  //     return { success: true, queued: false, fallback: true };
+  //   } catch (error) {
+  //     console.error('Verification fallback failed:', error.message);
+  //     return { success: false, error: error.message };
+  //   }
+  // }
 
   async _sendImmediateAppointmentFallback(doctor, patient, appointmentDetails) {
     try {

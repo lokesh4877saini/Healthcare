@@ -17,7 +17,7 @@ const DoctorProfile = ({doctor}) => {
 
   useEffect(() => {
     if (isMounted && !user) {
-      router.push('/users/login');
+      router.push('/login');
     }
   }, [isMounted, user, router]);
 

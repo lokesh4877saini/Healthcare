@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DoctorAppointmentsBoard from "./view/board/DoctorAppointmentsBoard";
 import styles1 from '@/styles/NewBookingPage.module.css';
-import styles from '@/styles/DoctorBookingsPage.module.css';
+import styles from '@/styles/DoctorAppointmentsPage.module.css';
 import DoctorAppointmentTab from "./view/tab/DoctorAppointmentTab";
 import { Grid3x3 } from "@mui/icons-material";
 import { RiLayout2Line } from "react-icons/ri";
@@ -14,27 +14,27 @@ export default function ToggleAppointmentsPage() {
 
   // Use the custom hook
   const {
-    bookings,
+    Appointments,
     loading,
     error,
-    fetchBookings,
+    fetchAppointments,
     cancelBooking,
     updateNoteBooking ,
     updateAppointmentStatus,
   } = useAppointments('doctor');
   // Transform data to match your component's expected format
-  const transformBookingsData = (bookings) => ({
+  const transformAppointmentsData = (appointments) => ({
     upcoming: {
       title: "Upcoming",
-      appointments: bookings.upcoming || []
+      appointments: appointments.upcoming || []
     },
     completed: {
       title: "Completed",
-      appointments: bookings.completed || []
+      appointments: appointments.completed || []
     },
     cancelled: {
       title: "Cancelled",
-      appointments: bookings.cancelled || []
+      appointments: appointments.cancelled || []
     }
   });
 
@@ -65,7 +65,7 @@ export default function ToggleAppointmentsPage() {
         }
 
       case 'refresh':
-        await fetchBookings();
+        await fetchAppointments();
         break;
 
       default:
@@ -75,7 +75,7 @@ export default function ToggleAppointmentsPage() {
 
   // Legacy callback for backward compatibility
   const handleBookingUpdate = () => {
-    fetchBookings();
+    fetchAppointments();
   };
 
   if (loading) return (
@@ -86,7 +86,7 @@ export default function ToggleAppointmentsPage() {
 
   if (error) return <p className={styles.error}>{error}</p>;
 
-  const transformedBookings = transformBookingsData(bookings);
+  const transformedAppointments = transformAppointmentsData(Appointments);
 
   const buttonStyle = (active) => ({
     display: "flex",
@@ -139,7 +139,7 @@ export default function ToggleAppointmentsPage() {
             className="appointments-view"
           >
             <DoctorAppointmentsBoard
-              bookings={transformedBookings}
+              Appointments={transformedAppointments}
               onBookingUpdate={handleBookingUpdate}
               onBookingAction={handleBookingAction}
             />
@@ -154,12 +154,12 @@ export default function ToggleAppointmentsPage() {
             className="appointments-view"
           >
             {/* <DoctorAppointmentTab
-              bookings={transformedBookings}
+              Appointments={transformedAppointments}
               onBookingUpdate={handleBookingUpdate}
               onBookingAction={handleBookingAction}
             /> */}
             {/* <DoctorAppointmentTab
-              bookings={transformedBookings}
+              Appointments={transformedAppointments}
               onBookingUpdate={handleBookingUpdate}
               onBookingAction={handleBookingAction}
             /> */}

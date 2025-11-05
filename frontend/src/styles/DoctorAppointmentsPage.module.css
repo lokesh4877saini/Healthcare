@@ -56,7 +56,7 @@
     overflow-x: auto;
   }
   
-  .bookingsTable {
+  .AppointmentsTable {
     width: 100%;
     border-collapse: collapse;
     background: rgba(255, 255, 255, 0.3);
@@ -64,28 +64,28 @@
     overflow: hidden;
   }
   
-  .bookingsTable thead {
+  .AppointmentsTable thead {
     background: rgba(255, 255, 255, 0.2);
   }
   
-  .bookingsTable th,
-  .bookingsTable td {
+  .AppointmentsTable th,
+  .AppointmentsTable td {
     padding: 1rem;
     text-align: left;
     color: #fff;
   }
   
-  .bookingsTable th {
+  .AppointmentsTable th {
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   
-  .bookingsTable tr:nth-child(even) {
+  .AppointmentsTable tr:nth-child(even) {
     background: rgba(255, 255, 255, 0.05);
   }
   
-  .noBookings {
+  .noAppointments {
     color: #ffffff;
     text-align: center;
     font-size: 1.2rem;

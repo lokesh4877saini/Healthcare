@@ -31,7 +31,10 @@ async function initializeServer() {
     }
 
     // Start Express server
-    server = app.listen(PORT, '0.0.0.0', () => {
+    // server = app.listen(PORT, '0.0.0.0', () => {
+    //   console.log(`Server running at http://localhost:${PORT}`);
+    // });
+    server = app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
 

@@ -10,7 +10,7 @@ export default function useCreateReschedule() {
     setError(null);
   
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}booking/reschedule/${bookingId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}appointment/reschedule/${bookingId}`, {
         method: "PUT",
         credentials: "include",
         headers: {

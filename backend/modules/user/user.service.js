@@ -11,7 +11,7 @@ class UserService {
     const otp = user.generateOtp();
     await user.save({ validateBeforeSave: false });
 
-    await sendEmailVerification(user, otp);
+    // await sendEmailVerification(user, otp);
     return user;
   }
 
@@ -64,6 +64,13 @@ class UserService {
       new: true,
       runValidators: true,
     });
+    if (!user) throw new ErrorHandler('User not found', 404);
+    return user;
+  }
+
+  /** get user details */
+  static async getUserdetails(userId) {
+    const user = await User.findById(userId).select('-password');
     if (!user) throw new ErrorHandler('User not found', 404);
     return user;
   }

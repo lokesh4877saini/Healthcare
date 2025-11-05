@@ -3,8 +3,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { appointmentService } from '@/services/appointmentService';
 
 // Add this transform function
-const transformData = (bookings) => {
-  return bookings.reduce(
+const transformData = (appointments) => {
+  return appointments.reduce(
     (acc, item) => {
       if (item.status === "scheduled") acc.upcoming.push(item);
       else if (item.status === "completed") acc.completed.push(item);
@@ -16,11 +16,11 @@ const transformData = (bookings) => {
 };
 
 export const useAppointments = (userRole = 'doctor') => {
-  const [bookings, setBookings] = useState({ upcoming: [], completed: [], cancelled: [] });
+  const [Appointments, setAppointments] = useState({ upcoming: [], completed: [], cancelled: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchBookings = useCallback(async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -31,8 +31,8 @@ export const useAppointments = (userRole = 'doctor') => {
       const res = await service();
       
       if (res.success) {
-        const transformedData = transformData(res.bookings);
-        setBookings(transformedData);
+        const transformedData = transformData(res.appointments);
+        setAppointments(transformedData);
       } else {
         setError(res.message || 'Failed to fetch appointments');
       }
@@ -45,13 +45,13 @@ export const useAppointments = (userRole = 'doctor') => {
   }, [userRole]);
   
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const cancelBooking = useCallback(async (bookingId, reason) => {
     try {
       const result = await appointmentService.cancelAppointment(bookingId, reason);
-      await fetchBookings(); // Refresh data
+      await fetchAppointments(); // Refresh data
       return { 
         success: true, 
         message: result.message || 'Appointment cancelled successfully' 
@@ -63,12 +63,12 @@ export const useAppointments = (userRole = 'doctor') => {
         error: err.message 
       };
     }
-  }, [fetchBookings]);
+  }, [fetchAppointments]);
 
   const updateNoteBooking = useCallback(async (bookingId, note) => {
     try {
       const result = await appointmentService.completeAppointment(bookingId, note);
-      await fetchBookings(); // Refresh data
+      await fetchAppointments(); // Refresh data
       return { 
         success: true, 
         message: result.message || 'Appointment completed successfully' 
@@ -80,12 +80,12 @@ export const useAppointments = (userRole = 'doctor') => {
         error: err.message 
       };
     }
-  }, [fetchBookings]);
+  }, [fetchAppointments]);
 
   const updateAppointmentStatus = useCallback(async (bookingId, status) => {
     try {
       const result = await appointmentService.updateAppointmentStatus(bookingId, status);
-      await fetchBookings(); // Refresh data
+      await fetchAppointments(); // Refresh data
       return { 
         success: true, 
         message: result.message || 'Appointment completed successfully' 
@@ -97,13 +97,13 @@ export const useAppointments = (userRole = 'doctor') => {
         error: err.message 
       };
     }
-  }, [fetchBookings]);
+  }, [fetchAppointments]);
 
   return { 
-    bookings, 
+    Appointments, 
     loading, 
     error, 
-    fetchBookings, 
+    fetchAppointments, 
     cancelBooking, 
     updateNoteBooking  ,
     updateAppointmentStatus,

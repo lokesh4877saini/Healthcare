@@ -5,7 +5,6 @@ let emailQueueInstance = null;
 
 class EmailQueue {
   constructor() {
-    console.log(redisConnection,"REsisdf conect((((((((")
     if (!redisConnection.client) {
       throw new Error('Redis client not initialized');
     }

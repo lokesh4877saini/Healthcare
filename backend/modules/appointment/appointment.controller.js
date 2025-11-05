@@ -17,11 +17,11 @@ exports.bookAppointment = catchAsyncError(async (req, res, next) => {
   );
 
   //Queue confirmation + reminder emails (non-blocking)
-  NotificationService.sendAppointmentConfirmation(doctorId, patientId, appointment)
-    .catch(err => console.error(' Failed to queue confirmation email:', err));
+  // NotificationService.sendAppointmentConfirmation(doctorId, patientId, appointment)
+  //   .catch(err => console.error(' Failed to queue confirmation email:', err));
 
-  NotificationService.scheduleAppointmentReminder(appointment, 24)
-    .catch(err => console.error(' Failed to schedule reminder:', err));
+  // NotificationService.scheduleAppointmentReminder(appointment, 24)
+  //   .catch(err => console.error(' Failed to schedule reminder:', err));
 
   res.status(201).json({
     success: true,
@@ -67,9 +67,9 @@ exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
   }
 
   // Send updated appointment info (optional email)
-  const appointment = await AppointmentService.findAppointmentById(req.params.id);
-  NotificationService.sendAppointmentConfirmation(appointment.doctor, appointment.patient, appointment)
-    .catch(err => console.error(' Failed to queue reschedule email:', err));
+  // const appointment = await AppointmentService.findAppointmentById(req.params.id);
+  // NotificationService.sendAppointmentConfirmation(appointment.doctor, appointment.patient, appointment)
+  //   .catch(err => console.error(' Failed to queue reschedule email:', err));
 
   res.status(200).json({
     success: true,

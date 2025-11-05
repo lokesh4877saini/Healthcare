@@ -36,7 +36,7 @@ root
       │   │   └───[id]
       │   ├───patients
       │   │   ├───new-booking
-      │   │   └───view-bookings
+      │   │   └───view-Appointments
       │   ├───profile
       │   │   └───me
       │   └───users

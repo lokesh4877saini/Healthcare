@@ -59,14 +59,14 @@ export default function Navbar() {
                   onClick={toggleBookingDropdown}
                   className={styles.dropdownToggle}
                 >
-                  Bookings <IoChevronDown className={styles.dropdownArrow} />
+                  Appointments <IoChevronDown className={styles.dropdownArrow} />
                 </button>
                 <div className={styles.dropdownContent}>
                   <Link href="/doctor/appointments" onClick={() => { 
                     setMenuOpen(false); 
                     setBookingDropdownOpen(false); 
                   }}>
-                    View Bookings
+                    View Appointments
                   </Link>
                   <Link href="/doctor/slots" onClick={() => { 
                     setMenuOpen(false); 
@@ -88,20 +88,20 @@ export default function Navbar() {
                   onClick={toggleBookingDropdown}
                   className={styles.dropdownToggle}
                 >
-                  Bookings <IoChevronDown className={styles.dropdownArrow} />
+                  Appointments <IoChevronDown className={styles.dropdownArrow} />
                 </button>
                 <div className={styles.dropdownContent}>
-                  <Link href="/patients/new-booking" onClick={() => { 
+                  <Link href="/patients/new-appointment" onClick={() => { 
                     setMenuOpen(false); 
                     setBookingDropdownOpen(false); 
                   }}>
-                    Book Appointment
+                    Book New Appointment
                   </Link>
-                  <Link href="/patients/view-bookings" onClick={() => { 
+                  <Link href="/patients/view-appointments" onClick={() => { 
                     setMenuOpen(false); 
                     setBookingDropdownOpen(false); 
                   }}>
-                    My Bookings
+                    My Appointments
                   </Link>
                   <Link href="/patients/doctors" onClick={() => { 
                     setMenuOpen(false); 
@@ -129,10 +129,10 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link href="/users/login" onClick={() => setMenuOpen(false)}>
+            <Link href="/login" onClick={() => setMenuOpen(false)}>
               <IoLogIn /> <span>Login</span>
             </Link>
-            <Link href="/users/register" onClick={() => setMenuOpen(false)}>
+            <Link href="/register" onClick={() => setMenuOpen(false)}>
               <HiUserAdd /> <span>Register</span>
             </Link>
           </>

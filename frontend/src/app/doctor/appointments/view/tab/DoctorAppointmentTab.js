@@ -48,14 +48,14 @@ function a11yProps(index) {
   };
 }
 
-export default function DoctorAppointmentTab({bookings,onBookingUpdate}) {
+export default function DoctorAppointmentTab({Appointments,onBookingUpdate}) {
   const theme = useTheme();
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const simplifyAppointments = (bookings) => {
+  const simplifyAppointments = (Appointments) => {
     const mapAppointments = (appointments) =>
       appointments.map((appt) => ({
         id: appt._id,
@@ -67,20 +67,20 @@ export default function DoctorAppointmentTab({bookings,onBookingUpdate}) {
 
     return {
       upcoming: {
-        title: bookings.upcoming.title,
-        appointments: mapAppointments(bookings.upcoming.appointments),
+        title: Appointments.upcoming.title,
+        appointments: mapAppointments(Appointments.upcoming.appointments),
       },
       completed: {
-        title: bookings.completed.title,
-        appointments: mapAppointments(bookings.completed.appointments),
+        title: Appointments.completed.title,
+        appointments: mapAppointments(Appointments.completed.appointments),
       },
       cancelled: {
-        title: bookings.cancelled.title,
-        appointments: mapAppointments(bookings.cancelled.appointments),
+        title: Appointments.cancelled.title,
+        appointments: mapAppointments(Appointments.cancelled.appointments),
       },
     };
   };
-  const data = simplifyAppointments(bookings);
+  const data = simplifyAppointments(Appointments);
   const getStatusColor = (title) => {
     switch (title) {
         case "Upcoming":

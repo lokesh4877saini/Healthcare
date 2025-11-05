@@ -147,14 +147,14 @@ export default function NewBookingPage() {
                 startTime: selectedSlot.startTime,
                 endTime: selectedSlot.endTime,
             };
-            const res = await fetcher("booking/book", {
+            const res = await fetcher("appointment/book", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
             if (res.success) {
                 setMessage("Booking successful!");
-                router.push("/patients/view-bookings");
+                router.push("/patients/view-appointments");
             } else {
                 setError(res.message || "Booking failed. Please try again.");
             }

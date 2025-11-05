@@ -6,7 +6,9 @@ const {
     loginUser,
     forgotPassword,
     resetPassword,
+    logout,
     updateProfile,
+    getUserDetails,
     deleteAllUsers, // note plural
 } = require('user/user.controller');
 
@@ -27,9 +29,11 @@ const { isAuthenticatedUser, authorizeRoles } = require('core/middleware/Auth');
 /* USER ROUTES */
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post("/logout",logout)
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
 router.put('/profile', isAuthenticatedUser, updateProfile);
+router.route('/me').get(isAuthenticatedUser,authorizeRoles('patient','doctor'),getUserDetails);
 router.delete('/delete/all', deleteAllUsers);
 
 /* DOCTOR ROUTES */

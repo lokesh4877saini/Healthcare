@@ -16,9 +16,9 @@ class ChatService {
       - Home: "/"
       - For patients:
         - Book Appointment: "/patients/new-booking"
-        - My Bookings: "/patients/view-bookings"
+        - My Appointments: "/patients/view-Appointments"
       - For doctors:
-        - View Bookings: "/doctor/appointments"
+        - View Appointments: "/doctor/appointments"
         - Manage Slots: "/doctor/slots"
       - Profile page: "/profile/me"
       
@@ -46,10 +46,10 @@ class ChatService {
       If the user asks what this app does or how it works, respond with:
       {
         "intent": "explain_app",
-        "message": "This app helps you easily book and manage your healthcare appointments. As a patient, you can:\\n\\n- Book new appointments: /patients/new-booking\\n- View or cancel your bookings: /patients/view-bookings\\n- View your profile details.\\n\\nHow would you like to proceed?",
+        "message": "This app helps you easily book and manage your healthcare appointments. As a patient, you can:\\n\\n- Book new appointments: /patients/new-booking\\n- View or cancel your Appointments: /patients/view-Appointments\\n- View your profile details.\\n\\nHow would you like to proceed?",
         "links": [
           { "label": "Book Appointment", "url": "/patients/new-booking" },
-          { "label": "View My Bookings", "url": "/patients/view-bookings" },
+          { "label": "View My Appointments", "url": "/patients/view-Appointments" },
           { "label": "View My Profile", "url": "/profile/me" }
         ],
         "url": null

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetcher } from "@/lib/api";
 import { formatDate, formatTime24to12 } from "@/lib/formatters";
-import styles from "@/styles/ViewBookings.module.css";
+import styles from "@/styles/ViewAppointments.module.css";
 import { useRouter } from "next/navigation";
 import UpdateBookingModal from "@/lib/BookingModal";
 import { useAuth } from "@/context/AuthProvider";
@@ -12,16 +12,16 @@ import LoggedOutNotice from "@/components/LoggedOutNotice";
 import CancelAppointment from "@/components/upcomming/cancel/CancelAppointment";
 import { appointmentService } from "@/services/appointmentService";
 
-export default function ViewBookingsPage() {
+export default function ViewAppointmentsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [bookingsByDoctor, setBookingsByDoctor] = useState({});
+  const [AppointmentsByDoctor, setAppointmentsByDoctor] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // Modal states
   // const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  // const [doctorData, setDoctorData] = useState(null);
+  const [doctorData, setDoctorData] = useState(null);
   const [openCancel, setOpenCancel] = useState(false);
   const [contentReason, setContentReason] = useState('');
   const [selectedDate, setSelectedDate] = useState("");
@@ -33,31 +33,31 @@ export default function ViewBookingsPage() {
   });
 
   useEffect(() => {
-    fetchBookings();
+    fetchAppointments();
   }, []);
-  async function fetchBookings() {
+  async function fetchAppointments() {
     try {
       setLoading(true);
-      const res = await fetcher("booking/my");
+      const res = await fetcher("appointment/my");
       if (res.success) {
         const grouped = {};
-        res.bookings.forEach((booking) => {
+        res.appointments.forEach((booking) => {
           const docId = booking.doctor._id;
           if (!grouped[docId]) {
             grouped[docId] = {
               doctor: booking.doctor,
-              bookings: [],
+              Appointments: [],
             };
           }
-          grouped[docId].bookings.push(booking);
+          grouped[docId].Appointments.push(booking);
         });
-        setBookingsByDoctor(grouped);
+        setAppointmentsByDoctor(grouped);
       } else {
-        setError(res.message || "Failed to load bookings.");
+        setError(res.message || "Failed to load Appointments.");
       }
     } catch (err) {
-      console.error("Error fetching bookings:", err);
-      setError("An error occurred while loading bookings.");
+      console.error("Error fetching Appointments:", err);
+      setError("An error occurred while loading Appointments.");
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function ViewBookingsPage() {
     if (!selectedBooking || !selectedSlot) return;
 
     try {
-      const res = await fetcher(`booking/reschedule/${selectedBooking._id}`, {
+      const res = await fetcher(`appointment/reschedule/${selectedBooking._id}`, {
         method: "PUT",
         body: JSON.stringify({
           date: selectedDate,
@@ -113,7 +113,7 @@ export default function ViewBookingsPage() {
 
       if (res.success) {
         setShowModal(false);
-        await fetchBookings();
+        await fetchAppointments();
       } else {
         setError(res.message || "Failed to update booking.");
       }
@@ -152,13 +152,13 @@ export default function ViewBookingsPage() {
     user ? (<>
       <main className={styles.container}>
         <main className={styles.page}>
-          {!loading && Object.keys(bookingsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
+          {!loading && Object.keys(AppointmentsByDoctor).length !== 0 && <h1 className={styles.heading}>Your Appointments</h1>}
 
           {loading && <main className={styles1.LoadingDiv}>
             <p className={styles1.LoadingPara}>Loading Appointments...</p>
           </main>}
           {error && <p className={styles.error}>{error}</p>}
-          {!loading && Object.keys(bookingsByDoctor).length === 0 && (
+          {!loading && Object.keys(AppointmentsByDoctor).length === 0 && (
             <main className={styles.page}>
               <div className={styles.emptyState}>
                 <h2>No Appointments Yet</h2>
@@ -166,7 +166,7 @@ export default function ViewBookingsPage() {
                 <p>Ready to find a doctor and book your first slot?</p>
                 <button
                   className={styles.ctaButton}
-                  onClick={() => router.push('new-booking')}
+                  onClick={() => router.push('new-appointment')}
                 >
                   Book an Appointment
                 </button>
@@ -176,7 +176,7 @@ export default function ViewBookingsPage() {
           )}
 
           <div className={styles.doctorGrid}>
-            {Object.entries(bookingsByDoctor).map(([doctorId, group]) => (
+            {Object.entries(AppointmentsByDoctor).map(([doctorId, group]) => (
               <div key={doctorId} className={styles.doctorCard}>
                 <h2 className={styles.doctorName}>Dr. {group.doctor.name}</h2>
                 <p className={styles.specialization}>
@@ -184,7 +184,7 @@ export default function ViewBookingsPage() {
                 </p>
 
                 <div className={styles.bookingGrid}>
-                  {group.bookings.map((booking) => (
+                  {group.Appointments.map((booking) => (
                     <div key={booking._id} className={styles.bookingCard}>
                       <div className={styles.details}>
                         <p>
