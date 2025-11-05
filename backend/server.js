@@ -1,5 +1,5 @@
 require('module-alias/register');
-require('dotenv').config({ path: 'modules/core/config/config.env' });
+require('dotenv').config({ path: './modules/core/config/config.env' });
 
 const app = require('./app');
 const connectDB = require('core/config/db');

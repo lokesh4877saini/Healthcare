@@ -1,6 +1,6 @@
 
 const mongoose = require('mongoose');
-const ErrorHandler = require('../utils/ErrorHandler');
+const ErrorHandler = require('core/utils/ErrorHandler');
 
 const AppointmentSchema = new mongoose.Schema({
   doctor: {

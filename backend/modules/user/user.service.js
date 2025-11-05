@@ -1,4 +1,4 @@
-const User = require('user/user.model');
+const User = require('./user.model');
 const ErrorHandler = require('core/utils/ErrorHandler');
 const sendEmail = require('core/utils/sendEmail');
 const { sendEmailVerification } = require('notification/notification.service');

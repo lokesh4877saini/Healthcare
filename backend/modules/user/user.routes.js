@@ -1,14 +1,13 @@
-
 const express = require('express');
 const router = express.Router();
 
-// Controllers
 const {
     registerUser,
     loginUser,
-    getUserDetails,
-    logout,
-    deleteAllUser,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    deleteAllUsers, // note plural
 } = require('user/user.controller');
 
 const {
@@ -23,17 +22,17 @@ const {
     deleteAllSlotsForDate,
 } = require('user/user.doctor.controller');
 
-// Middleware
 const { isAuthenticatedUser, authorizeRoles } = require('core/middleware/Auth');
 
-/* ------------------- USER ROUTES ------------------- */
+/* USER ROUTES */
 router.post('/register', registerUser);
 router.post('/login', loginUser);
-router.post('/logout', logout);
-router.get('/me', isAuthenticatedUser, authorizeRoles('patient', 'doctor'), getUserDetails);
-router.delete('/delete/all', deleteAllUser);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
+router.put('/profile', isAuthenticatedUser, updateProfile);
+router.delete('/delete/all', deleteAllUsers);
 
-/* ------------------- DOCTOR ROUTES ------------------- */
+/* DOCTOR ROUTES */
 router
     .route('/doctor/slots')
     .post(isAuthenticatedUser, authorizeRoles('doctor'), addDoctorSlots)

@@ -9,11 +9,11 @@
     "dev": "nodemon server.js"
   },
   "_moduleAliases": {
-    "core": "modules/core",
-    "user": "modules/user",
-    "appointment": "modules/appointment",
-    "chat": "modules/chat",
-    "notification": "modules/notification"
+    "core": "./modules/core",
+    "user": "./modules/user",
+    "appointment": "./modules/appointment",
+    "chat": "./modules/chat",
+    "notification": "./modules/notification"
   },
   "keywords": [],
   "author": "",

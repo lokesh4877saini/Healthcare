@@ -1,58 +1,44 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
-const errorMiddleware = require('./middleware/error');
+const cookieParser = require('cookie-parser')
+const errorMiddleware = require('./modules/core/middleware/error');
 
-// Load env variables
-dotenv.config({ path: "./config/config.env" });
+const app = express();
 
 const allowedOrigins = [
-  'http://localhost:3000',             // local dev
-  'http://192.168.1.68:3000',    // local network
-  'https://healthcare-dp.vercel.app',  // production
+  'http://localhost:3000',
+  'http://192.168.1.68:3000',
+  'https://healthcare-dp.vercel.app',
   'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app',
-  'https://healthcare-git-master-lokesh-sainis-projects.vercel.app', // pr preview branch
+  'https://healthcare-git-master-lokesh-sainis-projects.vercel.app'
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman)
     if (!origin) return callback(null, true);
-
-    // Allow if origin is in allowedOrigins
     if (allowedOrigins.includes(origin)) return callback(null, true);
-
-    // Regex for all Vercel preview deployments
     const vercelPreviewRegex = /^https:\/\/healthcare-[a-zA-Z0-9-]+-lokesh-sainis-projects\.vercel\.app\/?$/;
-
     if (vercelPreviewRegex.test(origin)) return callback(null, true);
-
-    // Deny all others
     callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
+  credentials: true,
 };
-app.use(cors(corsOptions))
-app.use(express.json()); //  Handles JSON body parsing
-app.use(express.urlencoded({ extended: true })); //  Handles form submissions
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+const { routes: userRoutes } = require('user');
+const { routes: appointmentRoutes } = require('./modules/appointment');
+const { routes: chatRoutes } = require('./modules/chat');
 
-//  Route imports
-const userRoutes = require('./routes/userRoute');
-const doctorRoutes = require('./routes/doctorRoute');
-const bookingRoutes = require('./routes/bookingRoute');
-const chatRoutes = require('./routes/ChatRoute');
+app.use('/api/v1', userRoutes);
+app.use('/api/v1/doctor', userRoutes);
+app.use('/api/v1/appointment', appointmentRoutes);
+app.use('/api/v1/ai/chat', chatRoutes);
 
-//  Use routes
-app.use("/api/v1", userRoutes);
-app.use("/api/v1/doctor", doctorRoutes);
-app.use('/api/v1/booking', bookingRoutes);
-app.use("/api/v1/ai/chat", chatRoutes);
 
-//  Error handler
 app.use(errorMiddleware);
 
 module.exports = app;
