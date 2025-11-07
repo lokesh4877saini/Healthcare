@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,16 +26,20 @@ const Alldoctors = ({ doctors }) => {
   }
 
   return (
-    <section className={styles.page}>
-      <h1 className={styles.title}>Our Doctors</h1>
-      <div className={styles.grid}>
-        {doctors.map((doctor) => (
-          <div className={styles.card} key={doctor._id}>
-            <DoctorCard doctor={doctor} />
-          </div>
-        ))}
-      </div>
-    </section>
+    <div className={styles.mainContainer}>
+
+
+      <section className={styles.page}>
+        <h1 className={styles.title}>Our Doctors</h1>
+        <div className={styles.grid}>
+          {doctors.map((doctor) => (
+            <div className={styles.card} key={doctor._id}>
+              <DoctorCard doctor={doctor} />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 };
 

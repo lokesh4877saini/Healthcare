@@ -1,16 +1,50 @@
 const Appointment = require('appointment/appointment.model'); // previously Booking
 const User = require('user/user.model');
 const ErrorHandler = require('core/utils/ErrorHandler');
+const { getAppointmentQueue } = require('./appointment.queue');
+const appointmentQueue = getAppointmentQueue();
 
 class AppointmentService {
-  /**  Validate doctor exists */
+  /** Validate doctor exists */
+  static async bookAppointment(doctorId, patientId, appointmentData) {
+    const { date, startTime, endTime } = appointmentData;
+
+    // Validate doctor and times
+    await this.validateDoctor(doctorId);
+
+    // Validate timing
+    this.validateTime(startTime, endTime);
+
+    // Prevent overlapping bookings
+    await this.checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime);
+
+
+    // Create appointment
+    const appointment = await this.createAppointment(doctorId, patientId, date, startTime, endTime);
+
+    //  If created successfully → queue confirmation email
+    // if (appointment) {
+    //   const doctor = await User.findById(doctorId).select('name email');
+    //   const patient = await User.findById(patientId).select('name email');
+
+    //   // Add appointment confirmation job
+    //   await appointmentQueue.addAppointmentConfirmation(doctor, patient, {
+    //     date: appointment.date,
+    //     startTime: appointment.startTime,
+    //     endTime: appointment.endTime,
+    //   });
+    //   console.log('Appointment booked and email jobs queued.');
+    // }
+    return { appointment };
+  }
+
   static async validateDoctor(doctorId) {
     const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
     if (!doctor) throw new ErrorHandler('Doctor not found', 404);
     return doctor;
   }
 
-  /**  Validate time slot */
+  /** Validate time slot */
   static validateTime(startTime, endTime) {
     const [sh, sm] = startTime.split(':').map(Number);
     const [eh, em] = endTime.split(':').map(Number);
@@ -18,22 +52,68 @@ class AppointmentService {
     const end = new Date(0, 0, 0, eh, em);
     if (end <= start) throw new ErrorHandler('endTime must be after startTime', 400);
   }
+  static timeToMinutes(time) {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
 
-  /**  Check overlapping appointments */
-  static async checkOverlappingAppointments(doctorId, date, startTime, endTime) {
-    const overlapping = await Appointment.findOne({
-      doctor: doctorId,
+  static buildTimeRangeQuery(startTime, endTime, fieldStart = 'startTime', fieldEnd = 'endTime') {
+    const startMin = this.timeToMinutes(startTime);
+    const endMin = this.timeToMinutes(endTime);
+
+    return {
+      $expr: {
+        $and: [
+          { $lt: [`$${fieldStart}`, endMin] },
+          { $gt: [`$${fieldEnd}`, startMin] }
+        ]
+      }
+    };
+  }
+
+
+  /** Check overlapping appointments */
+  static async checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime) {
+    const startMinutes = this.timeToMinutes(startTime);
+    const endMinutes = this.timeToMinutes(endTime);
+
+    //  Prevent patient from booking the same slot ever
+    const patientConflict = await Appointment.findOne({
+      patient: patientId,
       date,
-      $or: [{ startTime: { $lt: endTime }, endTime: { $gt: startTime } }],
-      status: { $in: ['scheduled', 'completed'] },
+      $expr: {
+        $and: [
+          { $eq: ['$startTimeMinutes', startMinutes] },
+          { $eq: ['$endTimeMinutes', endMinutes] }
+        ]
+      }
     });
 
-    if (overlapping) {
-      throw new ErrorHandler('This time slot overlaps with another appointment', 409);
+    if (patientConflict) {
+      throw new ErrorHandler('You have already booked this slot before', 409);
+    }
+
+    //  Prevent doctor overlapping active appointments
+    const doctorConflict = await Appointment.findOne({
+      doctor: doctorId,
+      date,
+      status: { $in: ['scheduled', 'approved'] },
+      $expr: {
+        $and: [
+          { $lt: ['$startTimeMinutes', endMinutes] },
+          { $gt: ['$endTimeMinutes', startMinutes] }
+        ]
+      }
+    });
+
+    if (doctorConflict) {
+      throw new ErrorHandler('This slot is already booked for the doctor', 409);
     }
   }
 
-  /**  Create appointment */
+
+
+  /** Create appointment */
   static async createAppointment(doctorId, patientId, date, startTime, endTime) {
     return await Appointment.create({
       doctor: doctorId,
@@ -44,24 +124,24 @@ class AppointmentService {
     });
   }
 
-  /**  Get doctor appointments */
+  /** Get doctor appointments */
   static async getDoctorAppointments(doctorId) {
     return await Appointment.find({ doctor: doctorId }).populate('patient', 'name email');
   }
 
-  /**  Get patient appointments */
+  /** Get patient appointments */
   static async getPatientAppointments(patientId) {
     return await Appointment.find({ patient: patientId }).populate('doctor', 'name specialization');
   }
 
-  /**  Find appointment by ID */
+  /** Find appointment by ID */
   static async findAppointmentById(appointmentId) {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) throw new ErrorHandler('Appointment not found', 404);
     return appointment;
   }
 
-  /**  Ensure user owns or is part of appointment */
+  /** Ensure user owns or is part of appointment */
   static async authorizeAppointmentAccess(appointment, userId) {
     if (
       appointment.patient.toString() !== userId.toString() &&
@@ -71,7 +151,7 @@ class AppointmentService {
     }
   }
 
-  /**  Delete appointment */
+  /** Delete appointment */
   static async deleteAppointment(appointmentId, userId) {
     const appointment = await this.findAppointmentById(appointmentId);
     await this.authorizeAppointmentAccess(appointment, userId);
@@ -80,9 +160,13 @@ class AppointmentService {
     const slotDate = doctor.availableSlots.find(slot => slot.date === appointment.date);
 
     if (slotDate) {
-      slotDate.time.push(appointment.time);
+      // ✅ fixed: appointment.time doesn’t exist — use startTime/endTime
+      slotDate.slots.push({ startTime: appointment.startTime, endTime: appointment.endTime });
     } else {
-      doctor.availableSlots.push({ date: appointment.date, time: [appointment.time] });
+      doctor.availableSlots.push({
+        date: appointment.date,
+        slots: [{ startTime: appointment.startTime, endTime: appointment.endTime }],
+      });
     }
 
     await doctor.save();
@@ -91,7 +175,7 @@ class AppointmentService {
     return { message: 'Appointment deleted and slot restored.' };
   }
 
-  /**  Reschedule appointment */
+  /** Reschedule appointment */
   static async rescheduleAppointment(appointmentId, userId, { date, time, forceCreateSlot }) {
     const { startTime, endTime } = time;
     const appointment = await this.findAppointmentById(appointmentId);
@@ -100,7 +184,11 @@ class AppointmentService {
     const doctor = await User.findById(appointment.doctor);
     if (!doctor) throw new ErrorHandler('Doctor not found', 404);
 
-    if (appointment.date === date && appointment.startTime === startTime && appointment.endTime === endTime) {
+    if (
+      appointment.date === date &&
+      appointment.startTime === startTime &&
+      appointment.endTime === endTime
+    ) {
       throw new ErrorHandler('You have selected the same date and time', 400);
     }
 
@@ -138,6 +226,7 @@ class AppointmentService {
       newSlotDate.slots.push({ startTime, endTime });
     }
 
+    // Remove the reserved slot
     newSlotDate.slots = newSlotDate.slots.filter(
       slot => !(slot.startTime === startTime && slot.endTime === endTime)
     );
@@ -153,7 +242,7 @@ class AppointmentService {
     return { message: 'Appointment rescheduled successfully' };
   }
 
-  /**  Appointment details */
+  /** Appointment details */
   static async getAppointmentDetails(appointmentId) {
     const appointment = await Appointment.findById(appointmentId)
       .populate('doctor', 'name email phone')
@@ -162,7 +251,7 @@ class AppointmentService {
 
     if (!appointment) throw new ErrorHandler('Appointment not found', 404);
 
-    let appointmentObj = appointment.toObject();
+    const appointmentObj = appointment.toObject();
 
     if (appointmentObj.cancelledBy) {
       const user = await User.findById(appointmentObj.cancelledBy).select('name');
@@ -174,12 +263,12 @@ class AppointmentService {
     return appointmentObj;
   }
 
-  /**  Update notes */
+  /** Update notes */
   static async updateAppointmentNote(appointmentId, { author, role, content }) {
     const appointment = await this.findAppointmentById(appointmentId);
 
     const lastNote = appointment.notes[appointment.notes.length - 1];
-    if (lastNote && lastNote.author._id?.toString() === author.toString() && lastNote.role === role) {
+    if (lastNote && lastNote.author?._id?.toString() === author.toString() && lastNote.role === role) {
       lastNote.content = content;
       lastNote.updatedAt = new Date();
     } else {
@@ -192,10 +281,9 @@ class AppointmentService {
     return { message: 'Appointment notes updated successfully' };
   }
 
-  /**  Cancel appointment */
+  /** Cancel appointment */
   static async cancelAppointment(appointmentId, { author, role, content }) {
     const appointment = await this.findAppointmentById(appointmentId);
-
     if (appointment.status === 'cancelled') {
       throw new ErrorHandler('Appointment is already cancelled', 400);
     }
@@ -210,7 +298,7 @@ class AppointmentService {
     return { message: 'Appointment cancelled successfully' };
   }
 
-  /**  Update status */
+  /** Update status */
   static async updateAppointmentStatus(appointmentId, status) {
     const appointment = await this.findAppointmentById(appointmentId);
 
@@ -232,7 +320,10 @@ class AppointmentService {
 
     const allowed = allowedTransitions[currentKey] || [];
     if (!allowed.includes(targetKey)) {
-      throw new ErrorHandler(`Cannot change appointment from '${appointment.status}' to '${status}'`, 400);
+      throw new ErrorHandler(
+        `Cannot change appointment from '${appointment.status}' to '${status}'`,
+        400
+      );
     }
 
     appointment.status = status;
@@ -242,7 +333,7 @@ class AppointmentService {
     return { message: 'Appointment status updated successfully' };
   }
 
-  /**  Delete all */
+  /** Delete all */
   static async deleteAllAppointments() {
     const result = await Appointment.deleteMany({});
     return {

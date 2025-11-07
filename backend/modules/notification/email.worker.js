@@ -1,86 +1,61 @@
-// modules/notification/email.worker.js
 const { Worker } = require('bullmq');
 const { redisConnection } = require('core/config/redis');
 const sendEmail = require('core/utils/sendEmail');
 
 function startEmailWorker() {
-  console.log(' Starting Email Worker...');
+  console.log('Starting Email Worker...');
 
-  if (!redisConnection.client) {
-    console.warn(' Redis client not configured — cannot start Email Worker yet.');
+  if (!redisConnection.client || !redisConnection.isReady()) {
+    console.warn('Redis not ready — cannot start Email Worker yet.');
     return null;
   }
 
-  if (!redisConnection.isReady()) {
-    console.warn(' Redis not ready — retrying in 2s...');
-    setTimeout(() => startEmailWorker(), 2000);
-    return null;
-  }
+  const worker = new Worker(
+    'email-queue',
+    async (job) => {
+      console.log(`Processing email job: ${job.name} (${job.id})`);
 
-  console.log(' Redis ready. Launching BullMQ Email Worker...');
-
-  try {
-    const worker = new Worker(
-      'healthcare-email-queue',
-      async (job) => {
-        console.log(` Processing job: ${job.name} - ${job.id}`);
-
-        try {
-          switch (job.name) {
-            // --- CASE 1: OTP Email Verification ---
-            case 'email-verification': {
-              const { user, otp } = job.data;
-              await sendEmail({
-                email: user.email,
-                subject: 'Your Account Verification OTP',
-                template: 'email_verification',
-                name: user.name,
-                otp,
-                message: `Use the OTP below to verify your account. It expires in 10 minutes.`,
-              });
-              console.log(` Verification email sent to ${user.email}`);
-              return { success: true, type: 'email-verification' };
-            }
-
-            // --- DEFAULT FALLBACK ---
-            default:
-              console.warn(` Unknown email job type: ${job.name}`);
-              return { success: false, reason: 'Unknown job type' };
-          }
-        } catch (error) {
-          console.error(` Email job failed (${job.id}):`, error.message);
-          throw error; // BullMQ will handle retries
+      switch (job.name) {
+        case 'email-verification': {
+          const { user, otp } = job.data;
+          await sendEmail({
+            email: user.email,
+            subject: 'Verify Your Account',
+            template: 'email_verification',
+            name: user.name,
+            otp,
+            message: 'Use this OTP to verify your account.',
+          });
+          break;
         }
-      },
-      {
-        connection: redisConnection.client,
-        concurrency: 2,
-        lockDuration: 30000,
-        removeOnComplete: { count: 50 },
-        removeOnFail: { count: 25 },
+
+        case 'password-reset': {
+          const { user, token } = job.data;
+          const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+          await sendEmail({
+            email: user.email,
+            subject: 'Password Reset Request',
+            message: `Click here to reset your password: ${resetUrl}`,
+          });
+          break;
+        }
+
+        default:
+          console.warn(`Unknown email job type: ${job.name}`);
       }
-    );
+    },
+    {
+      connection: redisConnection.client,
+      concurrency: 3,
+    }
+  );
 
-    // --- Event listeners ---
-    worker.on('ready', () => console.log('Email Worker ready and listening for jobs'));
-    worker.on('completed', (job, result) =>
-      console.log(` Job ${job.id} completed successfully`, result)
-    );
-    worker.on('failed', (job, err) =>
-      console.error(` Job ${job.id} failed:`, err.message)
-    );
-    worker.on('stalled', (jobId) =>
-      console.warn(` Job stalled: ${jobId}`)
-    );
-    worker.on('error', (err) =>
-      console.error(' Worker internal error:', err.message)
-    );
+  worker.on('ready', () => console.log(' Email Worker is ready.'));
+  worker.on('failed', (job, err) =>
+    console.error(` Email job failed (${job.id}):`, err.message)
+  );
 
-    return worker;
-  } catch (error) {
-    console.error(' Failed to create Email Worker:', error.message);
-    return null;
-  }
+  return worker;
 }
 
 module.exports = { startEmailWorker };

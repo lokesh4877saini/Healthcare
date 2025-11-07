@@ -61,11 +61,7 @@ export function useSlotManager(setAvailableSlots, fetchSlots) {
     const backendStartTime = convertTo24Hour(startTime);
     const backendEndTime = convertTo24Hour(endTime);
 
-    const payload = {
-      date: backendDate,
-      startTime: backendStartTime,
-      endTime: backendEndTime
-    };
+    const payload = { date: backendDate, slots: [ { startTime: backendStartTime, endTime: backendEndTime } ] };
 
     try {
       const res = await manageSlotService.addTimeslot(payload);
@@ -91,8 +87,7 @@ export function useSlotManager(setAvailableSlots, fetchSlots) {
   const handleDeleteSlot = async (slot) => {
     const payload = {
       date: slot.date,
-      startTime: convertTo24Hour(slot.startTime),
-      endTime: convertTo24Hour(slot.endTime)
+      slotId:slot.id
     };
     try {
       const res = await manageSlotService.deleteTimeslot(payload);

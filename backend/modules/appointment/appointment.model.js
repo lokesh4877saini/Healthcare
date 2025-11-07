@@ -27,9 +27,10 @@ const AppointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['scheduled', 'completed', 'cancelled'],
+    enum: ['scheduled', 'approved', 'completed', 'cancelled'],
     default: 'scheduled',
-  },
+  }
+  ,
   notes: [
     {
       author: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
@@ -59,7 +60,7 @@ AppointmentSchema.pre('save', function (next) {
   const startDate = new Date(0, 0, 0, startHour, startMin);
   const endDate = new Date(0, 0, 0, endHour, endMin);
   if (endDate <= startDate) {
-    return next(new ErrorHandler('endTime must be after startTime',400));
+    return next(new ErrorHandler('endTime must be after startTime', 400));
   }
   next();
 });

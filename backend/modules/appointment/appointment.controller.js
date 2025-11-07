@@ -6,27 +6,10 @@ const NotificationService = require('notification/notification.service');
 exports.bookAppointment = catchAsyncError(async (req, res, next) => {
   const { doctorId, date, startTime, endTime } = req.body;
   const patientId = req.user._id;
-
-  //Create appointment in DB
-  const appointment = await AppointmentService.createAppointment(
-    doctorId,
-    patientId,
-    date,
-    startTime,
-    endTime
-  );
-
-  //Queue confirmation + reminder emails (non-blocking)
-  // NotificationService.sendAppointmentConfirmation(doctorId, patientId, appointment)
-  //   .catch(err => console.error(' Failed to queue confirmation email:', err));
-
-  // NotificationService.scheduleAppointmentReminder(appointment, 24)
-  //   .catch(err => console.error(' Failed to schedule reminder:', err));
-
+  await AppointmentService.bookAppointment(doctorId,patientId,{date,startTime,endTime});
   res.status(201).json({
     success: true,
-    message: ' Appointment booked successfully.',
-    appointment,
+    message: ' Appointment booked successfully.'
   });
 });
 
@@ -80,13 +63,13 @@ exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
 //@desc Cancel appointment
 exports.cancelAppointment = catchAsyncError(async (req, res, next) => {
   const { author, role, content } = req.body;
-  const appointment = await AppointmentService.findAppointmentById(req.params.id);
+  // const appointment = await AppointmentService.findAppointmentById(req.params.id);
 
   const result = await AppointmentService.cancelAppointment(req.params.id, { author, role, content });
 
   // Queue cancellation email
-  NotificationService.sendAppointmentCancellation(appointment, author, content)
-    .catch(err => console.error(' Failed to queue cancellation email:', err));
+  // NotificationService.sendAppointmentCancellation(appointment, author, content)
+  //   .catch(err => console.error(' Failed to queue cancellation email:', err));
 
   res.status(200).json({ success: true, message: result.message });
 });

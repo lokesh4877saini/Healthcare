@@ -24,65 +24,68 @@ const PATIENTS = [
 export default function HomePage() {
   return (
     <main>
-      <section className={styles.hero}>
-        <div className={styles.overlay}>
-          <h1 className={styles.title}>Welcome to the Healthcare App</h1>
-          <p className={styles.subtitle}>Book appointments with trusted doctors, anytime.</p>
-          <Link href="#banner" className={styles.cta}>Book Appointment</Link>
-        </div>
-      </section>
+      <div className={styles.mainDiv}
+      >
+        <section className={styles.hero}>
+          <div className={styles.overlay}>
+            <h1 className={styles.title}>Welcome to the Healthcare App</h1>
+            <p className={styles.subtitle}>Book appointments with trusted doctors, anytime.</p>
+            <Link href="#banner" className={styles.cta}>Book Appointment</Link>
+          </div>
+        </section>
 
-      <section className={styles.featuredSection}>
-        <h2 id="banner" className={styles.sectionTitle}>Meet Our Trusted Doctors</h2>
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          slidesPerView={1}
-          spaceBetween={20}
-          loop={true}
-          autoplay={{ delay: 4000 }}
-          pagination={{ clickable: true }}
-          className={styles.swiper}
-          breakpoints={{
-            768: { slidesPerView: 1 },
-            1024: { slidesPerView: 3 }
-          }}
-        >
-          {DOCTORS.map((doctor) => (
-            <SwiperSlide key={doctor._id}>
-              <div className={styles.card}>
-                <h3>{doctor.name}</h3>
-                <p><strong>Specialization:</strong> {doctor.specialization}</p>
-                <p><strong>Contact:</strong> {doctor.phone}</p>
-                <p><strong>Email:</strong> {doctor.email}</p>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <section className={styles.featuredSection}>
+          <h2 id="banner" className={styles.sectionTitle}>Meet Our Trusted Doctors</h2>
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            slidesPerView={1}
+            spaceBetween={20}
+            loop={true}
+            autoplay={{ delay: 4000 }}
+            pagination={{ clickable: true }}
+            className={styles.swiper}
+            breakpoints={{
+              768: { slidesPerView: 1 },
+              1024: { slidesPerView: 3 }
+            }}
+          >
+            {DOCTORS.map((doctor) => (
+              <SwiperSlide key={doctor._id}>
+                <div className={styles.card}>
+                  <h3>{doctor.name}</h3>
+                  <p><strong>Specialization:</strong> {doctor.specialization}</p>
+                  <p><strong>Contact:</strong> {doctor.phone}</p>
+                  <p><strong>Email:</strong> {doctor.email}</p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
 
-        <h2 className={styles.sectionTitle}>Our Happy Patients</h2>
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          slidesPerView={1}
-          spaceBetween={20}
-          loop={true}
-          autoplay={{ delay: 4000 }}
-          pagination={{ clickable: true }}
-          className={styles.swiper}
-          breakpoints={{
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 }
-          }}
-        >
-          {PATIENTS.map((patient) => (
-            <SwiperSlide key={patient._id}>
-              <div className={styles.card}>
-                <h3>{patient.name}</h3>
-                <p><strong>Email:</strong> {patient.email}</p>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </section>
+          <h2 className={styles.sectionTitle}>Our Happy Patients</h2>
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            slidesPerView={1}
+            spaceBetween={20}
+            loop={true}
+            autoplay={{ delay: 4000 }}
+            pagination={{ clickable: true }}
+            className={styles.swiper}
+            breakpoints={{
+              768: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 }
+            }}
+          >
+            {PATIENTS.map((patient) => (
+              <SwiperSlide key={patient._id}>
+                <div className={styles.card}>
+                  <h3>{patient.name}</h3>
+                  <p><strong>Email:</strong> {patient.email}</p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </section>
+      </div>
     </main>
   );
 }

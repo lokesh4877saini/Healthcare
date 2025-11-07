@@ -95,7 +95,94 @@
   .details span {
     font-weight: 600;
   }
-  
+
+/* === Appointment Card States === */
+.bookingCard {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 18px;
+  transition: all 0.25s ease;
+}
+
+/*  Visually indicate a cancelled appointment */
+.cancelledCard {
+  background-color: #fdf3f3;
+  border: 1px solid #f5c6cb;
+  opacity: 0.8;
+}
+
+/* Status Texts */
+.activeStatus {
+  color: #2ecc71;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.cancelledStatusBox {
+  background-color: #ffe8e8;
+  border-left: 4px solid #d9534f;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.cancelledStatus {
+  color: #c0392b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cancelReason {
+  color: #8c1b1b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Buttons */
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.buttonPrimary,
+.buttonDanger {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.buttonPrimary {
+  background-color: #0070f3;
+  color: white;
+}
+
+.buttonPrimary:hover {
+  background-color: #0056c7;
+}
+
+.buttonDanger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.buttonDanger:hover {
+  background-color: #b52b39;
+}
+
+/* Timestamp style */
+.timestamp {
+  color: #777;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+
   .timestamp {
     font-size: 0.8rem;
     color: #a0aec0;

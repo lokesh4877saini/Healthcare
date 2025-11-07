@@ -26,7 +26,7 @@ export default function ViewAppointmentsPage() {
   const [contentReason, setContentReason] = useState('');
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(null); // {startTime, endTime}
-  const [bookingId,setBookingId] = useState(null);
+  const [bookingId, setBookingId] = useState(null);
   const [Payload, setDoctorPayload] = useState({
     id: null,
     role: null
@@ -128,10 +128,13 @@ export default function ViewAppointmentsPage() {
       return;
     }
 
-    const { id, role } = Payload;
+    if (!user) {
+      console.warn("User not found");
+      return;
+    }
     const payload = {
-      author: id,
-      role: role,
+      author: user._id,
+      role: user.role,
       content: contentReason,
     };
     try {
@@ -140,6 +143,7 @@ export default function ViewAppointmentsPage() {
         setOpenCancel(false);
         setContentReason('');
         setBookingId(null);
+        await fetchAppointments(); 
       } else if (result?.error) {
         console.error("Cancellation failed:", result.error);
       }
@@ -185,40 +189,77 @@ export default function ViewAppointmentsPage() {
 
                 <div className={styles.bookingGrid}>
                   {group.Appointments.map((booking) => (
-                    <div key={booking._id} className={styles.bookingCard}>
+                    <div
+                      key={booking._id}
+                      className={`${styles.bookingCard} ${booking.status === "cancelled" ? styles.cancelledCard : ""
+                        }`}
+                    >
                       <div className={styles.details}>
                         <p>
                           <span>Date:</span> {formatDate(booking.date)}
                         </p>
                         <p>
-                          <span>Time:</span> {`${formatTime24to12(booking.startTime)} - ${formatTime24to12(booking.endTime)}`}
+                          <span>Time:</span>{" "}
+                          {`${formatTime24to12(booking.startTime)} - ${formatTime24to12(
+                            booking.endTime
+                          )}`}
                         </p>
+
+                        {/* Show last update timestamp */}
                         <p className={styles.timestamp}>
-                          {booking.updatedAt && booking.updatedAt !== booking.createdAt ? "Updated:" : "Created:"}{" "}
+                          {booking.updatedAt && booking.updatedAt !== booking.createdAt
+                            ? "Updated:"
+                            : "Created:"}{" "}
                           {new Date(
                             booking.updatedAt && booking.updatedAt !== booking.createdAt
                               ? booking.updatedAt
                               : booking.createdAt
                           ).toLocaleString()}
                         </p>
+
+                        {/*  Status section */}
+                        {booking.status === "cancelled" ? (
+                          <div className={styles.cancelledStatusBox}>
+                            <p className={styles.cancelledStatus}>
+                              <strong>Status:</strong> Cancelled{" "}
+                              {booking.cancelledBy
+                                ? `by ${booking.cancelledBy === user._id ? "you" : "doctor"
+                                }`
+                                : ""}
+                            </p>
+                            {booking.cancelReason && (
+                              <p className={styles.cancelReason}>
+                                <strong>Reason:</strong> {booking.cancelReason}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className={styles.activeStatus}>
+                            <strong>Status:</strong> Scheduled
+                          </p>
+                        )}
                       </div>
 
-                      <div className={styles.buttonGroup}>
-                        <button
-                          className={styles.buttonPrimary}
-                          onClick={() => handleUpdate(booking, group.doctor._id)}
-                        >
-                          Update
-                        </button>
-                        <button
-                          className={styles.buttonDanger}
-                          onClick={() => handleCancel(booking._id)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      {/*  Buttons only for active appointments */}
+                      {booking.status !== "cancelled" && (
+                        <div className={styles.buttonGroup}>
+                          <button
+                            className={styles.buttonPrimary}
+                            onClick={() => handleUpdate(booking, group.doctor._id)}
+                          >
+                            Update
+                          </button>
+                          <button
+                            className={styles.buttonDanger}
+                            onClick={() => handleCancel(booking._id)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
+
                 </div>
               </div>
             ))}

@@ -1,5 +1,7 @@
 /* DoctorDetailPage.module.css */
-
+.mainContainer{
+  padding: 2rem;
+}
 .page {
   /* min-height: 100vh; */
   background: linear-gradient(135deg, #00bfff 0%, #0070f3 100%);
