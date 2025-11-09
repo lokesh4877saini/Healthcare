@@ -45,6 +45,7 @@ const AppointmentSchema = new mongoose.Schema({
     default: null
   },
   cancelledAt: { type: Date, default: null },
+  isSlotReusable: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,

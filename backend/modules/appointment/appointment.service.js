@@ -74,36 +74,27 @@ class AppointmentService {
 
   /** Check overlapping appointments */
   static async checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime) {
-    const startMinutes = this.timeToMinutes(startTime);
-    const endMinutes = this.timeToMinutes(endTime);
-
-    //  Prevent patient from booking the same slot ever
-    const patientConflict = await Appointment.findOne({
+    //  Prevent patient from booking the same slot ever (even if cancelled/deleted)
+    const existingSlot = await Appointment.findOne({
+      doctor: doctorId,
       patient: patientId,
       date,
-      $expr: {
-        $and: [
-          { $eq: ['$startTimeMinutes', startMinutes] },
-          { $eq: ['$endTimeMinutes', endMinutes] }
-        ]
-      }
+      startTime,
+      endTime,
+      isSlotReusable: false 
     });
 
-    if (patientConflict) {
-      throw new ErrorHandler('You have already booked this slot before', 409);
+    if (existingSlot) {
+      throw new ErrorHandler('You have already booked this exact slot before', 409);
     }
 
-    //  Prevent doctor overlapping active appointments
+    // Prevent doctor overlapping active appointments
     const doctorConflict = await Appointment.findOne({
       doctor: doctorId,
       date,
       status: { $in: ['scheduled', 'approved'] },
-      $expr: {
-        $and: [
-          { $lt: ['$startTimeMinutes', endMinutes] },
-          { $gt: ['$endTimeMinutes', startMinutes] }
-        ]
-      }
+      startTime,
+      endTime
     });
 
     if (doctorConflict) {
