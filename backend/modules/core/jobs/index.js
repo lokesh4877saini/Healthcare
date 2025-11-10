@@ -1,16 +1,16 @@
-// modules/core/jobs/index.js
 const { startEmailWorker } = require('notification/email.worker');
 const { startAppointmentWorker } = require('appointment/appointment.worker');
+const createLogger = require('core/logger/withContext');
+
+const logger = createLogger('jobs');
 
 function startAllWorkers() {
-  console.log(' Initializing all background workers...');
+  logger.info('Initializing all background workers...');
 
-  // Start workers safely
-  const emailWorker = startEmailWorker?.();
-  const appointmentWorker = startAppointmentWorker?.();
+  startEmailWorker();
+  startAppointmentWorker();
 
-  console.log(' All workers initialized successfully');
-  return { emailWorker, appointmentWorker };
+  logger.info('All workers initialized successfully');
 }
 
 module.exports = { startAllWorkers };

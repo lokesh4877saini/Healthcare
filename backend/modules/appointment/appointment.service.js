@@ -1,57 +1,68 @@
-const Appointment = require('appointment/appointment.model'); // previously Booking
+const Appointment = require('appointment/appointment.model');
 const User = require('user/user.model');
 const ErrorHandler = require('core/utils/ErrorHandler');
 const { getAppointmentQueue } = require('./appointment.queue');
 const appointmentQueue = getAppointmentQueue();
+const createLogger = require('core/logger/withContext');
+const logger = createLogger('AppointmentService');
 
 class AppointmentService {
   /** Validate doctor exists */
   static async bookAppointment(doctorId, patientId, appointmentData) {
     const { date, startTime, endTime } = appointmentData;
+    logger.info(`Booking appointment - Doctor: ${doctorId}, Patient: ${patientId}, Date: ${date}`);
 
-    // Validate doctor and times
-    await this.validateDoctor(doctorId);
+    try {
+      await this.validateDoctor(doctorId);
+      this.validateTime(startTime, endTime);
+      await this.checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime);
 
-    // Validate timing
-    this.validateTime(startTime, endTime);
+      const appointment = await this.createAppointment(doctorId, patientId, date, startTime, endTime);
 
-    // Prevent overlapping bookings
-    await this.checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime);
+      if (appointment) {
+        logger.info(`Appointment created successfully with ID: ${appointment._id}`);
+        const doctor = await User.findById(doctorId).select('name email');
+        const patient = await User.findById(patientId).select('name email');
 
+        await appointmentQueue.addConfirmation(doctor, patient, {
+          date: appointment.date,
+          startTime: appointment.startTime,
+          endTime: appointment.endTime,
+        });
 
-    // Create appointment
-    const appointment = await this.createAppointment(doctorId, patientId, date, startTime, endTime);
+        logger.info(`Confirmation email job queued for appointment ID: ${appointment._id}`);
+      }
 
-    //  If created successfully → queue confirmation email
-    // if (appointment) {
-    //   const doctor = await User.findById(doctorId).select('name email');
-    //   const patient = await User.findById(patientId).select('name email');
-
-    //   // Add appointment confirmation job
-    //   await appointmentQueue.addAppointmentConfirmation(doctor, patient, {
-    //     date: appointment.date,
-    //     startTime: appointment.startTime,
-    //     endTime: appointment.endTime,
-    //   });
-    //   console.log('Appointment booked and email jobs queued.');
-    // }
-    return { appointment };
+      return { appointment };
+    } catch (error) {
+      logger.error(`Failed to book appointment: ${error.message}`, error);
+      throw error;
+    }
   }
 
   static async validateDoctor(doctorId) {
+    logger.info(`Validating doctor with ID: ${doctorId}`);
     const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
-    if (!doctor) throw new ErrorHandler('Doctor not found', 404);
+    if (!doctor) {
+      logger.warn(`Doctor not found with ID: ${doctorId}`);
+      throw new ErrorHandler('Doctor not found', 404);
+    }
     return doctor;
   }
 
   /** Validate time slot */
   static validateTime(startTime, endTime) {
+    logger.info(`Validating time range: ${startTime} - ${endTime}`);
     const [sh, sm] = startTime.split(':').map(Number);
     const [eh, em] = endTime.split(':').map(Number);
     const start = new Date(0, 0, 0, sh, sm);
     const end = new Date(0, 0, 0, eh, em);
-    if (end <= start) throw new ErrorHandler('endTime must be after startTime', 400);
+    if (end <= start) {
+      logger.warn(`Invalid time range: endTime must be after startTime`);
+      throw new ErrorHandler('endTime must be after startTime', 400);
+    }
   }
+
   static timeToMinutes(time) {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
@@ -71,10 +82,10 @@ class AppointmentService {
     };
   }
 
-
   /** Check overlapping appointments */
   static async checkOverlappingAppointments(doctorId, patientId, date, startTime, endTime) {
-    //  Prevent patient from booking the same slot ever (even if cancelled/deleted)
+    logger.info(`Checking overlapping appointments for Doctor: ${doctorId}, Patient: ${patientId}, Date: ${date}`);
+
     const existingSlot = await Appointment.findOne({
       doctor: doctorId,
       patient: patientId,
@@ -85,10 +96,10 @@ class AppointmentService {
     });
 
     if (existingSlot) {
+      logger.warn(`Patient ${patientId} already booked this exact slot before`);
       throw new ErrorHandler('You have already booked this exact slot before', 409);
     }
 
-    // Prevent doctor overlapping active appointments
     const doctorConflict = await Appointment.findOne({
       doctor: doctorId,
       date,
@@ -98,14 +109,14 @@ class AppointmentService {
     });
 
     if (doctorConflict) {
+      logger.warn(`Doctor ${doctorId} has overlapping appointment at this time`);
       throw new ErrorHandler('This slot is already booked for the doctor', 409);
     }
   }
 
-
-
   /** Create appointment */
   static async createAppointment(doctorId, patientId, date, startTime, endTime) {
+    logger.info(`Creating appointment for Doctor: ${doctorId}, Patient: ${patientId}, Date: ${date}`);
     return await Appointment.create({
       doctor: doctorId,
       patient: patientId,
@@ -117,33 +128,42 @@ class AppointmentService {
 
   /** Get doctor appointments */
   static async getDoctorAppointments(doctorId) {
+    logger.info(`Fetching appointments for Doctor ID: ${doctorId}`);
     return await Appointment.find({ doctor: doctorId }).populate('patient', 'name email');
   }
 
   /** Get patient appointments */
   static async getPatientAppointments(patientId) {
+    logger.info(`Fetching appointments for Patient ID: ${patientId}`);
     return await Appointment.find({ patient: patientId }).populate('doctor', 'name specialization');
   }
 
   /** Find appointment by ID */
   static async findAppointmentById(appointmentId) {
+    logger.info(`Finding appointment by ID: ${appointmentId}`);
     const appointment = await Appointment.findById(appointmentId);
-    if (!appointment) throw new ErrorHandler('Appointment not found', 404);
+    if (!appointment) {
+      logger.warn(`Appointment not found with ID: ${appointmentId}`);
+      throw new ErrorHandler('Appointment not found', 404);
+    }
     return appointment;
   }
 
   /** Ensure user owns or is part of appointment */
   static async authorizeAppointmentAccess(appointment, userId) {
+    logger.info(`Authorizing access for User: ${userId} on Appointment: ${appointment._id}`);
     if (
       appointment.patient.toString() !== userId.toString() &&
       appointment.doctor.toString() !== userId.toString()
     ) {
+      logger.warn(`User ${userId} is not authorized to access Appointment ${appointment._id}`);
       throw new ErrorHandler('You are not authorized to access this appointment', 403);
     }
   }
 
   /** Delete appointment */
   static async deleteAppointment(appointmentId, userId) {
+    logger.info(`Deleting appointment ID: ${appointmentId} by User: ${userId}`);
     const appointment = await this.findAppointmentById(appointmentId);
     await this.authorizeAppointmentAccess(appointment, userId);
 
@@ -151,7 +171,6 @@ class AppointmentService {
     const slotDate = doctor.availableSlots.find(slot => slot.date === appointment.date);
 
     if (slotDate) {
-      // ✅ fixed: appointment.time doesn’t exist — use startTime/endTime
       slotDate.slots.push({ startTime: appointment.startTime, endTime: appointment.endTime });
     } else {
       doctor.availableSlots.push({
@@ -163,11 +182,13 @@ class AppointmentService {
     await doctor.save();
     await appointment.deleteOne();
 
+    logger.info(`Appointment ${appointmentId} deleted successfully and slot restored.`);
     return { message: 'Appointment deleted and slot restored.' };
   }
 
   /** Reschedule appointment */
   static async rescheduleAppointment(appointmentId, userId, { date, time, forceCreateSlot }) {
+    logger.info(`Rescheduling appointment ID: ${appointmentId} by User: ${userId}`);
     const { startTime, endTime } = time;
     const appointment = await this.findAppointmentById(appointmentId);
     await this.authorizeAppointmentAccess(appointment, userId);
@@ -198,6 +219,7 @@ class AppointmentService {
     );
 
     if (!isTimeAvailable && !forceCreateSlot) {
+      logger.warn(`Requested new slot not available for doctor ${doctor._id}`);
       return {
         requiresConfirmation: true,
         message: 'Selected time is not available. Do you want to create it anyway?',
@@ -217,7 +239,7 @@ class AppointmentService {
       newSlotDate.slots.push({ startTime, endTime });
     }
 
-    // Remove the reserved slot
+    // Remove reserved slot
     newSlotDate.slots = newSlotDate.slots.filter(
       slot => !(slot.startTime === startTime && slot.endTime === endTime)
     );
@@ -230,17 +252,22 @@ class AppointmentService {
     await doctor.save();
     await appointment.save();
 
+    logger.info(`Appointment ${appointmentId} rescheduled successfully`);
     return { message: 'Appointment rescheduled successfully' };
   }
 
   /** Appointment details */
   static async getAppointmentDetails(appointmentId) {
+    logger.info(`Fetching details for Appointment ID: ${appointmentId}`);
     const appointment = await Appointment.findById(appointmentId)
       .populate('doctor', 'name email phone')
       .populate('patient', 'name email phone')
       .populate('notes.author');
 
-    if (!appointment) throw new ErrorHandler('Appointment not found', 404);
+    if (!appointment) {
+      logger.warn(`Appointment not found: ${appointmentId}`);
+      throw new ErrorHandler('Appointment not found', 404);
+    }
 
     const appointmentObj = appointment.toObject();
 
@@ -256,6 +283,7 @@ class AppointmentService {
 
   /** Update notes */
   static async updateAppointmentNote(appointmentId, { author, role, content }) {
+    logger.info(`Updating notes for Appointment ID: ${appointmentId}`);
     const appointment = await this.findAppointmentById(appointmentId);
 
     const lastNote = appointment.notes[appointment.notes.length - 1];
@@ -269,13 +297,16 @@ class AppointmentService {
     appointment.updatedAt = new Date();
     await appointment.save();
 
+    logger.info(`Notes updated for Appointment ID: ${appointmentId}`);
     return { message: 'Appointment notes updated successfully' };
   }
 
   /** Cancel appointment */
   static async cancelAppointment(appointmentId, { author, role, content }) {
+    logger.info(`Cancelling Appointment ID: ${appointmentId}`);
     const appointment = await this.findAppointmentById(appointmentId);
     if (appointment.status === 'cancelled') {
+      logger.warn(`Appointment already cancelled: ${appointmentId}`);
       throw new ErrorHandler('Appointment is already cancelled', 400);
     }
 
@@ -286,11 +317,13 @@ class AppointmentService {
     appointment.cancelledAt = new Date();
 
     await appointment.save();
+    logger.warn(`Appointment ${appointmentId} cancelled by ${author}`);
     return { message: 'Appointment cancelled successfully' };
   }
 
   /** Update status */
   static async updateAppointmentStatus(appointmentId, status) {
+    logger.info(`Updating status for Appointment ID: ${appointmentId} to ${status}`);
     const appointment = await this.findAppointmentById(appointmentId);
 
     const statusMap = {
@@ -311,6 +344,7 @@ class AppointmentService {
 
     const allowed = allowedTransitions[currentKey] || [];
     if (!allowed.includes(targetKey)) {
+      logger.warn(`Invalid status transition: ${appointment.status} -> ${status}`);
       throw new ErrorHandler(
         `Cannot change appointment from '${appointment.status}' to '${status}'`,
         400
@@ -321,12 +355,15 @@ class AppointmentService {
     appointment.updatedAt = new Date();
     await appointment.save();
 
+    logger.info(`Appointment ${appointmentId} status updated to ${status}`);
     return { message: 'Appointment status updated successfully' };
   }
 
   /** Delete all */
   static async deleteAllAppointments() {
+    logger.warn('Deleting all appointments');
     const result = await Appointment.deleteMany({});
+    logger.info(`Deleted ${result.deletedCount} appointments`);
     return {
       message: 'All appointments deleted successfully',
       deletedCount: result.deletedCount,

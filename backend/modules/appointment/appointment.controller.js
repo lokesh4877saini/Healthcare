@@ -1,47 +1,73 @@
 const catchAsyncError = require('core/middleware/catchAsyncError');
 const AppointmentService = require('appointment/appointment.service');
-const NotificationService = require('notification/notification.service');
+const createLogger = require('core/logger/withContext');
+const logger = createLogger('AppointmentController');
 
-//Book a new appointm 
+// Book a new appointment
 exports.bookAppointment = catchAsyncError(async (req, res, next) => {
   const { doctorId, date, startTime, endTime } = req.body;
   const patientId = req.user._id;
-  await AppointmentService.bookAppointment(doctorId,patientId,{date,startTime,endTime});
+
+  logger.info(`Booking appointment`, { doctorId, patientId, date, startTime, endTime });
+
+  await AppointmentService.bookAppointment(doctorId, patientId, { date, startTime, endTime });
+
+  logger.info(`Appointment booked successfully`, { doctorId, patientId });
   res.status(201).json({
     success: true,
-    message: ' Appointment booked successfully.'
+    message: 'Appointment booked successfully.'
   });
 });
 
-//Get all appointments for a doctor
+// Get all appointments for a doctor
 exports.getDoctorAppointments = catchAsyncError(async (req, res, next) => {
-  const appointments = await AppointmentService.getDoctorAppointments(req.user._id);
+  const doctorId = req.user._id;
+  logger.info(`Fetching doctor appointments`, { doctorId });
+
+  const appointments = await AppointmentService.getDoctorAppointments(doctorId);
+
+  logger.info(`Fetched ${appointments.length} appointments for doctor`, { doctorId });
   res.status(200).json({ success: true, appointments });
 });
 
-//Get all appointments for a patient
+// Get all appointments for a patient
 exports.getPatientAppointments = catchAsyncError(async (req, res, next) => {
-  const appointments = await AppointmentService.getPatientAppointments(req.user._id);
+  const patientId = req.user._id;
+  logger.info(`Fetching patient appointments`, { patientId });
+
+  const appointments = await AppointmentService.getPatientAppointments(patientId);
+
+  logger.info(`Fetched ${appointments.length} appointments for patient`, { patientId });
   res.status(200).json({ success: true, appointments });
 });
 
-//View appointment details
+// View appointment details
 exports.viewAppointmentDetails = catchAsyncError(async (req, res, next) => {
-  const appointment = await AppointmentService.getAppointmentDetails(req.params.id);
+  const appointmentId = req.params.id;
+  logger.info(`Fetching appointment details`, { appointmentId });
+
+  const appointment = await AppointmentService.getAppointmentDetails(appointmentId);
+
+  logger.info(`Appointment details fetched successfully`, { appointmentId });
   res.status(200).json({ success: true, appointment });
 });
 
-//Reschedule appointment
+// Reschedule appointment
 exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
   const { date, time, forceCreateSlot } = req.body;
+  const appointmentId = req.params.id;
+  const userId = req.user._id;
+
+  logger.info(`Rescheduling appointment`, { appointmentId, userId, date, time });
 
   const result = await AppointmentService.rescheduleAppointment(
-    req.params.id,
-    req.user._id,
+    appointmentId,
+    userId,
     { date, time, forceCreateSlot }
   );
 
   if (result.requiresConfirmation) {
+    logger.warn(`Reschedule requires confirmation`, { appointmentId });
     return res.status(409).json({
       success: false,
       requiresConfirmation: true,
@@ -49,54 +75,72 @@ exports.rescheduleAppointment = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  // Send updated appointment info (optional email)
-  // const appointment = await AppointmentService.findAppointmentById(req.params.id);
-  // NotificationService.sendAppointmentConfirmation(appointment.doctor, appointment.patient, appointment)
-  //   .catch(err => console.error(' Failed to queue reschedule email:', err));
-
+  logger.info(`Appointment rescheduled successfully`, { appointmentId });
   res.status(200).json({
     success: true,
     message: result.message,
   });
 });
 
-//@desc Cancel appointment
+// Cancel appointment
 exports.cancelAppointment = catchAsyncError(async (req, res, next) => {
+  const appointmentId = req.params.id;
   const { author, role, content } = req.body;
-  // const appointment = await AppointmentService.findAppointmentById(req.params.id);
 
-  const result = await AppointmentService.cancelAppointment(req.params.id, { author, role, content });
+  logger.info(`Cancelling appointment`, { appointmentId, author, role });
 
-  // Queue cancellation email
-  // NotificationService.sendAppointmentCancellation(appointment, author, content)
-  //   .catch(err => console.error(' Failed to queue cancellation email:', err));
+  const result = await AppointmentService.cancelAppointment(appointmentId, { author, role, content });
 
+  logger.info(`Appointment cancelled successfully`, { appointmentId });
   res.status(200).json({ success: true, message: result.message });
 });
 
-//Add or update appointment not
+// Add or update appointment note
 exports.updateAppointmentNote = catchAsyncError(async (req, res, next) => {
+  const appointmentId = req.params.id;
   const { author, role, content } = req.body;
-  const result = await AppointmentService.updateAppointmentNote(req.params.id, { author, role, content });
+
+  logger.info(`Updating appointment note`, { appointmentId, author, role });
+
+  const result = await AppointmentService.updateAppointmentNote(appointmentId, { author, role, content });
+
+  logger.info(`Appointment note updated successfully`, { appointmentId });
   res.status(200).json({ success: true, message: result.message });
 });
 
-//Update appointment status
+// Update appointment status
 exports.updateAppointmentStatus = catchAsyncError(async (req, res, next) => {
+  const appointmentId = req.params.id;
   const { status } = req.body;
-  const result = await AppointmentService.updateAppointmentStatus(req.params.id, status);
+
+  logger.info(`Updating appointment status`, { appointmentId, status });
+
+  const result = await AppointmentService.updateAppointmentStatus(appointmentId, status);
+
+  logger.info(`Appointment status updated successfully`, { appointmentId, status });
   res.status(200).json({ success: true, message: result.message });
 });
 
 // Delete a specific appointment
 exports.deleteAppointment = catchAsyncError(async (req, res, next) => {
-  const result = await AppointmentService.deleteAppointment(req.params.id, req.user._id);
+  const appointmentId = req.params.id;
+  const userId = req.user._id;
+
+  logger.warn(`Deleting appointment`, { appointmentId, userId });
+
+  const result = await AppointmentService.deleteAppointment(appointmentId, userId);
+
+  logger.info(`Appointment deleted successfully`, { appointmentId });
   res.status(200).json({ success: true, message: result.message });
 });
 
 // Delete all appointments (admin)
 exports.deleteAllAppointments = catchAsyncError(async (req, res, next) => {
+  logger.warn(`Deleting all appointments (admin)`);
+
   const result = await AppointmentService.deleteAllAppointments();
+
+  logger.info(`Deleted ${result.deletedCount} appointments`);
   res.status(200).json({
     success: true,
     message: result.message,

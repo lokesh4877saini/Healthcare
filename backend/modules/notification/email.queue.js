@@ -1,5 +1,8 @@
 const { Queue } = require('bullmq');
 const { redisConnection } = require('core/config/redis');
+const createLogger = require('core/logger/withContext');
+
+const logger = createLogger('Email-Queue');
 
 class EmailQueue {
   constructor() {
@@ -13,23 +16,48 @@ class EmailQueue {
       },
     });
 
-    this.queue.on('error', (err) => console.error('[EmailQueue] Error:', err.message));
+    // Centralized error logging
+    this.queue.on('error', (err) => {
+      logger.error('Queue error occurred', { message: err.message, stack: err.stack });
+    });
+
+    logger.info('Email Queue instance created and connected to Redis.');
   }
 
+  /** Add email verification job */
   async addEmailVerification(user, otp) {
-    return await this.queue.add('email-verification', { user, otp });
+    logger.info('Adding email verification job', {
+      userId: user._id,
+      email: user.email,
+    });
+
+    const job = await this.queue.add('email-verification', { user, otp });
+
+    logger.info('Email verification job queued successfully', { jobId: job.id });
+    return job;
   }
 
+  /** Add password reset email job */
   async addPasswordReset(user, token) {
-    return await this.queue.add('password-reset', { user, token });
+    logger.info('Adding password reset email job', {
+      userId: user._id,
+      email: user.email,
+    });
+
+    const job = await this.queue.add('password-reset', { user, token });
+
+    logger.info('Password reset job queued successfully', { jobId: job.id });
+    return job;
   }
 }
 
 let emailQueueInstance = null;
+
+/** Singleton instance getter */
 function getEmailQueue() {
   if (!emailQueueInstance) {
     emailQueueInstance = new EmailQueue();
-    console.log('Email Queue initialized');
+    logger.info('Email Queue initialized successfully');
   }
   return emailQueueInstance;
 }

@@ -1,5 +1,7 @@
 const Redis = require('ioredis');
+const createLogger = require('core/logger/withContext');
 
+const logger = createLogger('Redis');
 class RedisConnection {
     constructor() {
         this.client = null;
@@ -10,7 +12,7 @@ class RedisConnection {
             this.client.disconnect();
         }
         if (process.env.REDIS_URL_LOCAL) {
-            console.log('Creating Redis client...');
+            logger.info('Creating Redis client...');
 
             // Parse the REDIS_URL_LOCAL to ensure proper connection
             const redisUrl = process.env.REDIS_URL_LOCAL;
@@ -28,7 +30,7 @@ class RedisConnection {
                 autoResubscribe: false,
             });
         } else {
-            console.log(' REDIS_URL_LOCAL not found - Redis functionality disabled');
+            logger.info(' REDIS_URL_LOCAL not found - Redis functionality disabled');
             this.client = null;
             return;
         }
@@ -42,12 +44,12 @@ class RedisConnection {
         }
 
         this.client.on('connect', () => {
-            console.log('Redis connected successfully to Upstash');
+            logger.info('Redis connected successfully to Upstash');
         });
 
         this.client.on('error', (err) => {
-            console.error(' Redis connection error:', err.message);
-            console.error(' Error details:', {
+            logger.error(' Redis connection error:', err.message);
+            logger.error(' Error details:', {
                 code: err.code,
                 address: err.address,
                 port: err.port
@@ -55,27 +57,27 @@ class RedisConnection {
         });
 
         this.client.on('close', () => {
-            console.log('Redis connection closed');
+            logger.info('Redis connection closed');
         });
 
         this.client.on('reconnecting', (delay) => {
-            console.log(`Redis reconnecting in ${delay}ms`);
+            logger.info(`Redis reconnecting in ${delay}ms`);
         });
     }
 
     async connect() {
         if (!this.client) {
-            console.log(' Redis client not configured - check REDIS_URL_LOCAL');
+            logger.info(' Redis client not configured - check REDIS_URL_LOCAL');
             return;
         }
         
         try {
-            console.log('Attempting to connect to Upstash Redis...');
+            logger.info('Attempting to connect to Upstash Redis...');
             await this.client.connect();
-            console.log('Successfully connected to Upstash Redis');
+            logger.info('Successfully connected to Upstash Redis');
         } catch (error) {
-            console.error(' Failed to connect to Redis:', error.message);
-            console.error(' Connection details:', {
+            logger.error(' Failed to connect to Redis:', error.message);
+            logger.error(' Connection details:', {
                 url: process.env.REDIS_URL_LOCAL ? '***' : 'missing',
                 errorCode: error.code
             });

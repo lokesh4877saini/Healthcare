@@ -1,6 +1,8 @@
 require('module-alias/register');
 require('dotenv').config({ path: './modules/core/config/config.env' });
+const createLogger = require('core/logger/withContext');
 
+const logger = createLogger('Server');
 const app = require('./app');
 const connectDB = require('core/config/db');
 const { redisConnection } = require('core/config/redis');
@@ -19,10 +21,10 @@ let server;
 async function initializeServer() {
   try {
     if (!redisConnection.client) {
-      console.warn('Redis not configured - running without queues');
+      logger.warn('Redis not configured - running without queues');
     } else {
       await redisConnection.connect();
-      console.log(' Redis connected successfully');
+      logger.warn(' Redis connected successfully');
 
       // Start all background workers (email, appointment, etc.)
       setTimeout(() => {
@@ -35,11 +37,11 @@ async function initializeServer() {
     //   console.log(`Server running at http://localhost:${PORT}`);
     // });
     server = app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      logger.info(`Server running at http://localhost:${PORT}`);
     });
 
   } catch (error) {
-    console.error(' Failed to initialize Redis or server:', error.message);
+    logger.error(' Failed to initialize Redis or server:', error.message);
     process.exit(1);
   }
 }
