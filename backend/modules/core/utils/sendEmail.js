@@ -50,7 +50,6 @@ const sendEmail = async (options) => {
 
         // Verify transporter before sending
         await transporter.verify();
-        // console.log("SMTP connection verified successfully");
 
         const mailOptions = {
             from: `"TechHealthCare" <${process.env.SMTP_MAIL}>`,
