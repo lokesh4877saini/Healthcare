@@ -27,7 +27,7 @@ class UserService {
   static async loginUser(email, password) {
     logger.info(`Login attempt`, { email });
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password').populate("role", "name permissions");
     if (!user) {
       logger.warn(`Login failed - user not found`, { email });
       throw new ErrorHandler('Invalid Email or Password', 401);
@@ -111,7 +111,9 @@ class UserService {
   static async getUserdetails(userId) {
     logger.info(`Fetching user details`, { userId });
 
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId) .populate("role", "name") 
+    .select("role");
+
     if (!user) {
       logger.warn(`User not found`, { userId });
       throw new ErrorHandler('User not found', 404);

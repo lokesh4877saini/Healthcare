@@ -8,7 +8,9 @@ exports.isAuthenticatedUser = catchAsyncError(async(req,res,next)=>{
         return next(new ErrorHandler("Please Login to access this resourse",401));
     }
     const decodedData = JWT.verify(token,process.env.JWT_SECRET)
-    req.user = await User.findById(decodedData.id);
+    req.user = await User.findById(decodedData.id)
+    .populate("role", "name permissions");
+  
     next();
 })
 // middleware/authorizeRoles.js
@@ -17,9 +19,9 @@ exports.authorizeRoles = (...roles) => {
   if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-  
-      if (!roles.includes(req.user.role)) {
-        return res.status(403).json({ message: `Role ${req.user.role} is not allowed` });
+      const userRole = req.user.role?.name;
+      if (!roles.includes(userRole)) {
+        return res.status(403).json({ message: `Role ${userRole} is not allowed`});
       }
   
       next(); // proceed if role matches

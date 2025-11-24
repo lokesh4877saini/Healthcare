@@ -11,11 +11,11 @@ class RedisConnection {
         if (this.client) {
             this.client.disconnect();
         }
-        if (process.env.REDIS_URL_LOCAL) {
+        if (process.env.REDIS_LOCAL) {
             logger.info('Creating Redis client...');
 
-            // Parse the REDIS_URL_LOCAL to ensure proper connection
-            const redisUrl = process.env.REDIS_URL_LOCAL;
+            // Parse the REDIS_LOCAL to ensure proper connection
+            const redisUrl = process.env.REDIS_LOCAL;
 
             this.client = new Redis(redisUrl, {
                 maxRetriesPerRequest: null,
@@ -30,7 +30,7 @@ class RedisConnection {
                 autoResubscribe: false,
             });
         } else {
-            logger.info(' REDIS_URL_LOCAL not found - Redis functionality disabled');
+            logger.info(' REDIS_LOCAL not found - Redis functionality disabled');
             this.client = null;
             return;
         }
@@ -67,7 +67,7 @@ class RedisConnection {
 
     async connect() {
         if (!this.client) {
-            logger.info(' Redis client not configured - check REDIS_URL_LOCAL');
+            logger.info(' Redis client not configured - check REDIS_LOCAL');
             return;
         }
         
@@ -78,7 +78,7 @@ class RedisConnection {
         } catch (error) {
             logger.error(' Failed to connect to Redis:', error.message);
             logger.error(' Connection details:', {
-                url: process.env.REDIS_URL_LOCAL ? '***' : 'missing',
+                url: process.env.REDIS_LOCAL ? '***' : 'missing',
                 errorCode: error.code
             });
             throw error;

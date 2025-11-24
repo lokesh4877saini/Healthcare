@@ -33,7 +33,7 @@ router.post("/logout",logout)
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
 router.put('/profile', isAuthenticatedUser, updateProfile);
-router.route('/me').get(isAuthenticatedUser,authorizeRoles('patient','doctor'),getUserDetails);
+router.get('/me', isAuthenticatedUser, getUserDetails);
 router.delete('/delete/all', deleteAllUsers);
 
 /* DOCTOR ROUTES */

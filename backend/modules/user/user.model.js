@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema({
 
   otp: String,
   otpExpire: Date,
-
+  role: { type: mongoose.Schema.Types.ObjectId, ref: "Role" },
   isVerified: {
     type: Boolean,
     default: false,
