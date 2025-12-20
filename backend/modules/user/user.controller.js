@@ -1,23 +1,26 @@
-const UserService = require('user/user.service');
-const catchAsyncError = require('core/middleware/catchAsyncError');
-const ErrorHandler = require('core/utils/ErrorHandler');
-const sendToken = require('core/utils/jwtToken');
-const sendEmail = require('core/utils/sendEmail');
-const createLogger = require('core/logger/withContext');
+const UserService = require('../user/user.service');
+const catchAsyncError = require('../core/middleware/catchAsyncError');
+const ErrorHandler = require('../core/utils/ErrorHandler');
+const sendToken = require('../core/utils/sendToken'); // session-based now
+const sendEmail = require('../core/utils/sendEmail');
+const SessionService = require('../session/session.service');
+const createLogger = require('../core/logger/withContext');
 
 const logger = createLogger('UserController');
 
-// Register user
+// --------------------- Register user ---------------------
 exports.registerUser = catchAsyncError(async (req, res, next) => {
   logger.info('Register user request received', { email: req.body.email, role: req.body.role });
 
   const user = await UserService.registerUser(req.body);
+
   logger.info('User registered successfully', { userId: user._id, email: user.email });
 
-  sendToken(user, 201, res);
+  // Send session cookies
+  await sendToken(user, 201, res, req);
 });
 
-// Login user
+// --------------------- Login user ---------------------
 exports.loginUser = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
   logger.info('Login request received', { email });
@@ -27,34 +30,57 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Please enter both email and password', 400));
   }
 
-  const user = await UserService.loginUser(email, password);
+  
+  const user = await UserService.loginUser(email, password, req);
   logger.info('User logged in successfully', { userId: user._id, email });
-
-  sendToken(user, 200, res, {
+  
+  // Send session cookies, exclude sensitive fields
+  await sendToken(user, 200, res, req, {
     excludeFields: ['password', 'availableSlots', 'createdAt', 'phone', 'otp', 'otpExpire', 'isVerified'],
   });
 });
 
-// Logout User
+// --------------------- Logout user ---------------------
 exports.logout = catchAsyncError(async (req, res, next) => {
   const isProduction = process.env.NODE_ENV === 'production';
+  const refreshToken = req.cookies?.refresh_token;
+
   logger.info('Logout request received', { userId: req.user?._id });
 
-  res.cookie('token', null, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    expires: new Date(0),
-  });
+  // Invalidate session by refresh token
+  if (refreshToken) {
+    await SessionService.deleteSessionByRefreshToken(refreshToken);
+  }
+
+  // Clear cookies
+  res
+    .cookie('access_token', '', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      expires: new Date(0),
+    })
+    .cookie('refresh_token', '', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      expires: new Date(0),
+    })
+    .cookie('role', '', {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      expires: new Date(0),
+    });
 
   logger.info('User logged out successfully');
   res.status(200).json({
     success: true,
-    message: 'Logged Out',
+    message: 'Logged out successfully',
   });
 });
 
-// Forgot password
+// --------------------- Forgot password ---------------------
 exports.forgotPassword = catchAsyncError(async (req, res, next) => {
   logger.info('Forgot password request received', { email: req.body.email });
 
@@ -75,7 +101,7 @@ exports.forgotPassword = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Reset password
+// --------------------- Reset password ---------------------
 exports.resetPassword = catchAsyncError(async (req, res, next) => {
   logger.info('Reset password request received');
 
@@ -86,10 +112,12 @@ exports.resetPassword = catchAsyncError(async (req, res, next) => {
   );
 
   logger.info('Password reset successfully', { userId: user._id });
-  sendToken(user, 200, res);
+
+  // Send session cookies after password reset
+  await sendToken(user, 200, res, req);
 });
 
-// Update profile
+// --------------------- Update profile ---------------------
 exports.updateProfile = catchAsyncError(async (req, res, next) => {
   logger.info('Profile update request received', { userId: req.user.id });
 
@@ -102,7 +130,7 @@ exports.updateProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Get user details
+// --------------------- Get user details ---------------------
 exports.getUserDetails = catchAsyncError(async (req, res, next) => {
   logger.info('Get user details request received', { userId: req.user.id });
 
@@ -115,7 +143,7 @@ exports.getUserDetails = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Delete all users
+// --------------------- Delete all users (Admin) ---------------------
 exports.deleteAllUsers = catchAsyncError(async (req, res, next) => {
   logger.warn('Admin requested to delete all users');
 

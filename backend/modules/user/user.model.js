@@ -1,7 +1,5 @@
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const crypto = require('crypto');
 
@@ -28,10 +26,10 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 
-  role: {
-    type: String,
-    enum: ['patient', 'doctor', 'admin'],
-    default: 'patient',
+  role: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Role", 
+    required: false 
   },
 
   specialization: {
@@ -57,7 +55,7 @@ const userSchema = new mongoose.Schema({
 
   otp: String,
   otpExpire: Date,
-  role: { type: mongoose.Schema.Types.ObjectId, ref: "Role" },
+
   isVerified: {
     type: Boolean,
     default: false,
@@ -73,31 +71,20 @@ const userSchema = new mongoose.Schema({
 });
 
 
-//  Hash password before save
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+// 1. Hash password before saving
+// userSchema.pre('save', async function (next) {
+//   if (!this.isModified('password')) return next();
+//   this.password = await bcrypt.hash(this.password, 10);
+//   next();
+// });
 
 
-// Generate JWT token
-userSchema.methods.generateJWT = function () {
-  return jwt.sign(
-    { id: this._id },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
-  );
-};
+// // 2. Compare entered password with hashed password
+// userSchema.methods.comparePassword = async function (enteredPassword) {
+//   return bcrypt.compare(enteredPassword, this.password);
+// };
 
 
-//  Compare entered password with hashed password
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-
-// Generate password reset token
 userSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString('hex');
 
@@ -106,19 +93,16 @@ userSchema.methods.getResetPasswordToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000; 
 
   return resetToken;
 };
 
-
-//  Generate OTP for email/phone verification
 userSchema.methods.generateOtp = function () {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  this.otp = crypto.createHash('sha256').update(otp).digest('hex');
+  // this.otp = crypto.createHash('sha256').update(otp).digest('hex');
   this.otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
   return otp;
 };
-
 
 module.exports = mongoose.model('User', userSchema);

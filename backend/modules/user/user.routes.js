@@ -24,7 +24,8 @@ const {
     deleteAllSlotsForDate,
 } = require('user/user.doctor.controller');
 
-const { isAuthenticatedUser, authorizeRoles } = require('core/middleware/Auth');
+const { authorizeRoles:authorizeRole,hasPermission } = require('../core/access-control');
+const { isAuthenticatedUser } = require('../core/middleware/Auth');
 
 /* USER ROUTES */
 router.post('/register', registerUser);
@@ -39,20 +40,20 @@ router.delete('/delete/all', deleteAllUsers);
 /* DOCTOR ROUTES */
 router
     .route('/doctor/slots')
-    .post(isAuthenticatedUser, authorizeRoles('doctor'), addDoctorSlots)
-    .get(isAuthenticatedUser, authorizeRoles('doctor'), getDoctorSlots);
+    .post(isAuthenticatedUser, authorizeRole('doctor'), addDoctorSlots)
+    .get(isAuthenticatedUser, authorizeRole('doctor'), getDoctorSlots);
 
 router
     .route('/doctor/update-slot')
-    .patch(isAuthenticatedUser, authorizeRoles('doctor', 'admin'), updateDoctorSlotsAfterBooking);
+    .patch(isAuthenticatedUser, authorizeRole('doctor', 'admin'), updateDoctorSlotsAfterBooking);
 
 router
     .route('/doctor/delete-time-slot')
-    .delete(isAuthenticatedUser, authorizeRoles('doctor'), deleteSingleTimeSlot);
+    .delete(isAuthenticatedUser, authorizeRole('doctor'),hasPermission("doctor.slot.delete"),deleteSingleTimeSlot);
 
 router
     .route('/doctor/delete-date-slot')
-    .delete(isAuthenticatedUser, authorizeRoles('doctor'), deleteAllSlotsForDate);
+    .delete(isAuthenticatedUser, authorizeRole('doctor'), deleteAllSlotsForDate);
 
 router.get('/doctor', getDoctorsBySpecialization);
 router.get('/doctor/lists/all', getAllDoctors);

@@ -8,6 +8,7 @@ const app = express();
 app.use(requestLogger);
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://dev.healthcare-dp:3000',
   'http://192.168.1.68:3000',
   'https://healthcare-dp.vercel.app',
   'https://healthcare-git-feature-viewbooking-lokesh-sainis-projects.vercel.app',
@@ -31,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const { routes: userRoutes } = require('user');
+const { routes: userRoutes } = require('./modules/user');
 const { routes: appointmentRoutes } = require('./modules/appointment');
 const { routes: chatRoutes } = require('./modules/chat');
 

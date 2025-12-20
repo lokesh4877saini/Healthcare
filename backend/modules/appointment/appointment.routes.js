@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { isAuthenticatedUser, authorizeRoles } = require('core/middleware/Auth');
+const { authorizeRoles:authorizeRole} = require('../core/access-control');
+const { isAuthenticatedUser } = require('../core/middleware/Auth');
 const {
   bookAppointment,
   getDoctorAppointments,
@@ -16,15 +17,15 @@ const {
 
 /* ------------------- Appointment Routes ------------------- */
 
-router.post('/book', isAuthenticatedUser, authorizeRoles('patient'), bookAppointment);
-router.get('/doctor', isAuthenticatedUser, authorizeRoles('doctor'), getDoctorAppointments);
-router.get('/my', isAuthenticatedUser, authorizeRoles('patient'), getPatientAppointments);
-router.get('/viewDetails/:id', isAuthenticatedUser, authorizeRoles('doctor', 'patient'), viewAppointmentDetails);
-router.put('/reschedule/:id', isAuthenticatedUser, authorizeRoles('patient', 'doctor'), rescheduleAppointment);
-router.put('/cancel/:id', isAuthenticatedUser, authorizeRoles('patient', 'doctor'), cancelAppointment);
-router.put('/updateNote/:id', isAuthenticatedUser, authorizeRoles('doctor'), updateAppointmentNote);
-router.put('/updatestatus/:id', isAuthenticatedUser, authorizeRoles('doctor'), updateAppointmentStatus);
-router.delete('/delete/:id', isAuthenticatedUser, authorizeRoles('doctor', 'patient'), deleteAppointment);
-router.delete('/allbookingdelete', isAuthenticatedUser, authorizeRoles('admin'), deleteAllAppointments);
+router.post('/book', isAuthenticatedUser, authorizeRole('patient'), bookAppointment);
+router.get('/doctor', isAuthenticatedUser, authorizeRole('doctor'), getDoctorAppointments);
+router.get('/my', isAuthenticatedUser, authorizeRole('patient'), getPatientAppointments);
+router.get('/viewDetails/:id', isAuthenticatedUser, authorizeRole('doctor', 'patient'), viewAppointmentDetails);
+router.put('/reschedule/:id', isAuthenticatedUser, authorizeRole('patient', 'doctor'), rescheduleAppointment);
+router.put('/cancel/:id', isAuthenticatedUser, authorizeRole('patient', 'doctor'), cancelAppointment);
+router.put('/updateNote/:id', isAuthenticatedUser, authorizeRole('doctor'), updateAppointmentNote);
+router.put('/updatestatus/:id', isAuthenticatedUser, authorizeRole('doctor'), updateAppointmentStatus);
+router.delete('/delete/:id', isAuthenticatedUser, authorizeRole('doctor', 'patient'), deleteAppointment);
+router.delete('/allbookingdelete', isAuthenticatedUser, authorizeRole('admin'), deleteAllAppointments);
 
 module.exports = router;

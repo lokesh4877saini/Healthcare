@@ -1,82 +1,105 @@
-const User = require('./user.model');
-const ErrorHandler = require('core/utils/ErrorHandler');
-const sendEmail = require('core/utils/sendEmail');
-const { sendEmailVerification } = require('notification/notification.service');
-const crypto = require('crypto');
-const createLogger = require('core/logger/withContext');
+const User = require("./user.model");
+const ErrorHandler = require("core/utils/ErrorHandler");
+const crypto = require("crypto");
+const SessionService = require("../session/session.service");
+const createLogger = require("core/logger/withContext");
 
-const logger = createLogger('UserService');
+const logger = createLogger("UserService");
 
 class UserService {
-  /** Register a new user */
+  /** ---------------------------------------
+   * Register a new user
+   * --------------------------------------*/
   static async registerUser({ name, email, password, role, specialization, phone }) {
     logger.info(`Attempting to register new user`, { email, role });
 
-    const user = await User.create({ name, email, password, role, specialization, phone });
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role,
+      specialization,
+      phone
+    });
+
+    // Generate OTP
     const otp = user.generateOtp();
     await user.save({ validateBeforeSave: false });
 
-    logger.info(`User registered successfully`, { userId: user._id, email, role });
+    logger.info(`User registered successfully`, { userId: user._id, email });
 
-    // Optionally send verification email
+    // Optionally send email verification
     // await sendEmailVerification(user, otp);
+
     return user;
   }
 
-  /** Login user */
-  static async loginUser(email, password) {
+  /** ---------------------------------------
+   * Login user
+   * --------------------------------------*/
+  static async loginUser(email, password, req) {
     logger.info(`Login attempt`, { email });
 
-    const user = await User.findOne({ email }).select('+password').populate("role", "name permissions");
+    const user = await User.findOne({ email })
+      .select("+password")
+      .populate("role", "name permissions");
+
     if (!user) {
-      logger.warn(`Login failed - user not found`, { email });
-      throw new ErrorHandler('Invalid Email or Password', 401);
+      throw new ErrorHandler("Invalid Email or Password", 401);
     }
 
-    const isPasswordMatch = await user.comparePassword(password);
+    const isPasswordMatch = user.password === password;
     if (!isPasswordMatch) {
-      logger.warn(`Login failed - invalid password`, { userId: user._id, email });
-      throw new ErrorHandler('Invalid Email or Password', 401);
+      throw new ErrorHandler("Invalid Email or Password", 401);
     }
 
-    logger.info(`User logged in successfully`, { userId: user._id, email });
-    return user;
-  }
+    logger.info(`User logged in successfully`, { userId: user._id });
 
-  /** Forgot password */
+    // Return the REAL mongoose user document
+    return user;
+}
+
+
+  /** ---------------------------------------
+   * Forgot Password
+   * --------------------------------------*/
   static async forgotPassword(email) {
     logger.info(`Forgot password request`, { email });
 
     const user = await User.findOne({ email });
     if (!user) {
       logger.warn(`Forgot password failed - user not found`, { email });
-      throw new ErrorHandler('User not found', 404);
+      throw new ErrorHandler("User not found", 404);
     }
 
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    logger.info(`Password reset token generated`, { userId: user._id, email });
+    logger.info(`Password reset token generated`, { userId: user._id });
+
     return { user, resetToken };
   }
 
-  /** Reset password */
+  /** ---------------------------------------
+   * Reset Password
+   * --------------------------------------*/
   static async resetPassword(token, newPassword, confirmPassword) {
     logger.info(`Password reset attempt`);
 
-    const resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
     const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
     });
 
     if (!user) {
       logger.warn(`Invalid or expired reset token`);
-      throw new ErrorHandler('Invalid or expired reset token', 400);
+      throw new ErrorHandler("Invalid or expired reset token", 400);
     }
 
     if (newPassword !== confirmPassword) {
-      logger.warn(`Password mismatch for reset`, { userId: user._id });
+      logger.warn(`Reset password mismatch`, { userId: user._id });
       throw new ErrorHandler("Passwords don't match", 400);
     }
 
@@ -86,53 +109,63 @@ class UserService {
     await user.save();
 
     logger.info(`Password reset successful`, { userId: user._id });
+
     return user;
   }
 
-  /** Update user profile */
-  static async updateProfile(userId, data) {
+  /** ---------------------------------------
+   * Update Profile
+   * --------------------------------------*/
+  static async updateProfile(userId, updateFields) {
     logger.info(`Updating user profile`, { userId });
 
-    const user = await User.findByIdAndUpdate(userId, data, {
+    const user = await User.findByIdAndUpdate(userId, updateFields, {
       new: true,
-      runValidators: true,
+      runValidators: true
     });
 
     if (!user) {
       logger.warn(`Update failed - user not found`, { userId });
-      throw new ErrorHandler('User not found', 404);
+      throw new ErrorHandler("User not found", 404);
     }
 
     logger.info(`User profile updated successfully`, { userId });
     return user;
   }
 
-  /** Get user details */
+  /** ---------------------------------------
+   * Get user details
+   * --------------------------------------*/
   static async getUserdetails(userId) {
     logger.info(`Fetching user details`, { userId });
 
-    const user = await User.findById(userId) .populate("role", "name") 
-    .select("role");
+    const user = await User.findById(userId)
+      .populate("role", "name permissions")
+      .select("-password");
 
     if (!user) {
       logger.warn(`User not found`, { userId });
-      throw new ErrorHandler('User not found', 404);
+      throw new ErrorHandler("User not found", 404);
     }
 
     logger.info(`User details fetched successfully`, { userId });
+
     return user;
   }
 
-  /** Delete all users */
+  /** ---------------------------------------
+   * Delete All Users (Admin)
+   * --------------------------------------*/
   static async deleteAllUsers() {
-    logger.warn(`Deleting all users (admin operation)`);
+    logger.warn(`Deleting all users (ADMIN OPERATION)`);
 
     const result = await User.deleteMany({});
 
     logger.info(`All users deleted`, { deletedCount: result.deletedCount });
+
     return {
-      message: 'All users deleted successfully',
-      deletedCount: result.deletedCount,
+      message: "All users deleted successfully",
+      deletedCount: result.deletedCount
     };
   }
 }

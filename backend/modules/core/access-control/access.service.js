@@ -3,15 +3,19 @@ const Role = require("./role.model");
 
 class AccessService {
   static async createPermission(data) {
-    return await Permission.create(data);
+    return Permission.create(data);
   }
 
   static async createRole(data) {
-    return await Role.create(data);
+    return Role.create(data);
   }
 
   static async assignPermissionsToRole(roleId, permissionIds) {
-    return await Role.findByIdAndUpdate(roleId, { permissions: permissionIds });
+    return Role.findByIdAndUpdate(
+      roleId,
+      { permissions: permissionIds },
+      { new: true }
+    );
   }
 }
 
