@@ -22,7 +22,7 @@ export default function LoggedOutNotice() {
           <Link href="/" className={`${styles.button} ${styles.homeButton}`}>
             <FaHome /> <span>Return Home</span>
           </Link>
-          <Link href="/users/login" className={`${styles.button} ${styles.loginButton}`}>
+          <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>
             <IoLogIn /> <span>Sign In</span>
           </Link>
         </div>

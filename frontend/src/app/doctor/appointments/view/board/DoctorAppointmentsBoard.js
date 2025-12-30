@@ -6,7 +6,7 @@ import styles from "@/styles/DoctorAppointmentsBoard.module.css";
 import { motion } from "framer-motion";
 import styles1 from "@/styles/NewBookingPage.module.css";
 import { AppointmentCard } from "./AppointmentCard.js";
-export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onBookingAction }) {
+export default function DoctorAppointmentsBoard({ Appointments, onBookingUpdate, onBookingAction }) {
     const transformColumn = (column) => ({
 
         title: column.title,
@@ -22,12 +22,12 @@ export default function DoctorAppointmentsBoard({ bookings, onBookingUpdate, onB
             status: appt.status,
         })),
     });
-    const transformColumns = (bookings) => ({
-        upcoming: transformColumn(bookings.upcoming),
-        completed: transformColumn(bookings.completed),
-        cancelled: transformColumn(bookings.cancelled),
+    const transformColumns = (Appointments) => ({
+        upcoming: transformColumn(Appointments.upcoming),
+        completed: transformColumn(Appointments.completed),
+        cancelled: transformColumn(Appointments.cancelled),
     });
-    const [columns, setColumns] = useState(transformColumns(bookings));
+    const [columns, setColumns] = useState(transformColumns(Appointments));
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 

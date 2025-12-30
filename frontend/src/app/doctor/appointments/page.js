@@ -1,6 +1,6 @@
 import ToggleAppointmentsPage from './ToggleView';
 
-export default function DoctorBookingsPage() {
+export default function DoctorAppointmentsPage() {
   return (
     <>
     <ToggleAppointmentsPage />

@@ -2,3 +2,4 @@
 .idea
 .dockerignore
 config.env
+/logs

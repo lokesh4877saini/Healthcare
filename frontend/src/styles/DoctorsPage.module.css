@@ -1,5 +1,7 @@
 /* DoctorsPage.module.css */
-
+.mainContainer{
+  padding: 2rem;
+}
 .page {
     min-height: 100vh;
     border-radius: 20px;

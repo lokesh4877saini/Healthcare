@@ -1,47 +1,67 @@
+require('module-alias/register');
+require('dotenv').config({ path: './modules/core/config/config.env' });
+const createLogger = require('core/logger/withContext');
+
+const logger = createLogger('Server');
 const app = require('./app');
-require('dotenv').config({ path: "./config/config.env" })
-const connection = require('./config/db');
+const connectDB = require('core/config/db');
+const { redisConnection } = require('core/config/redis');
+const { startAllWorkers } = require('core/jobs'); // centralized worker manager
+
 const PORT = process.env.PORT || 4001;
-// connecting with database
-connection();
-app.get('/', (req, res) => {
-    res.send("okey");
-})
-app.get('/rahul', (req, res) => {
-    res.send(
-        `
-        <!DOCTYPE html>
-       <html lang="en">
-       <head>
-           <meta charset="UTF-8">
-           <meta http-equiv="X-UA-Compatible" content="IE=edge">
-           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-           <title>Document</title>
-       </head>
-       <body>
-           <h1>Hello Rahul ky hal chal</h1>
-       </body>
-       </html>
-  `     
-    );
-})
-// app.listen(PORT, '0.0.0.0', () => {
-//     console.log(`Server running on http://0.0.0.0:${PORT}`);
-//   });
-  
-app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-      });
-      
-// suppose config.env we wrongly type data connection string then we caught error and our server will down 
-// it is called unhandled Promise Rejection
-process.on('unhandledRejection', err => {
-    console.log(`Error : ${err}`);
-    console.log('Error:', err);
-    console.log('Error message:', err.message);
-    console.log('Error stack:', err.stack);
-    console.log("Shutting down the server due to unhandled Promise Rejection")
-    server.close(() => {
-        process.exit(1);
+
+// Connect MongoDB
+connectDB();
+
+// Initialize Redis client
+redisConnection.setupClient();
+
+let server;
+
+async function initializeServer() {
+  try {
+    if (!redisConnection.client) {
+      logger.warn('Redis not configured - running without queues');
+    } else {
+      await redisConnection.connect();
+      logger.warn(' Redis connected successfully');
+
+      // Start all background workers (email, appointment, etc.)
+      setTimeout(() => {
+        startAllWorkers();
+      }, 1000);
+    }
+
+    // Start Express server
+    // server = app.listen(PORT, '0.0.0.0', () => {
+    //   console.log(`Server running at http://localhost:${PORT}`);
+    // });
+    server = app.listen(PORT, () => {
+      logger.info(`Server running at http://localhost:${PORT}`);
     });
-})
+
+  } catch (error) {
+    logger.error(' Failed to initialize Redis or server:', error.message);
+    process.exit(1);
+  }
+}
+
+initializeServer();
+
+// Simple health route
+app.get('/', (req, res) => {
+  res.send(' Healthcare backend app is running...');
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err.message);
+  console.error(err.stack);
+  console.log('Shutting down server due to unhandled promise rejection');
+
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
+});

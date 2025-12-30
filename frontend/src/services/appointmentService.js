@@ -3,40 +3,40 @@ import { fetcher } from '@/lib/api';
 
 export const appointmentService = {
   // Doctor appointments
-  getDoctorAppointments: () => fetcher('booking/doctor'),
+  getDoctorAppointments: () => fetcher('appointment/doctor'),
 
   getDoctorSlots: () => fetcher('doctor/slots'),
 
-  getAppointmentsById: (bookingId) => fetcher(`booking/viewDetails/${bookingId}`),
+  getAppointmentsById: (bookingId) => fetcher(`appointment/viewDetails/${bookingId}`),
 
   cancelAppointment: (bookingId, payload) =>
-    fetcher(`booking/cancel/${bookingId}`, {
+    fetcher(`appointment/cancel/${bookingId}`, {
       method: 'PUT',
       body: JSON.stringify(payload)
     }),
 
   rescheduleAppointment: (bookingId, data) =>
-    fetcher(`booking/reschedule/${bookingId}`, {
+    fetcher(`appointment/reschedule/${bookingId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
 
     updateNoteBooking: (bookingId, payload) =>
-    fetcher(`booking/updateNote/${bookingId}`, {
+    fetcher(`appointment/updateNote/${bookingId}`, {
       method: "PUT",
       body: JSON.stringify(payload)
     }),
     
   updateAppointmentStatus: (bookingId, payload) =>
-    fetcher(`booking/updatestatus/${bookingId}`, {
+    fetcher(`appointment/updatestatus/${bookingId}`, {
       method: "PUT",
       body: JSON.stringify(payload)
     }),
 
   // Patient appointments
-  getPatientAppointments: () => fetcher('booking/patient'),
+  getPatientAppointments: () => fetcher('appointment/patient'),
   createAppointment: (data) =>
-    fetcher('booking', {
+    fetcher('appointment', {
       method: 'POST',
       body: JSON.stringify(data)
     })

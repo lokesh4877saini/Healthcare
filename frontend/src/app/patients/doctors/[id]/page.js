@@ -1,8 +1,6 @@
 // src/app/patients/doctors/[id]/page.js
 import { fetcher } from '@/lib/api';
 import styles from '@/styles/DoctorDetailPage.module.css';
-import { getCurrentUser } from '@/lib/getCurrentUser';
-import { redirect } from 'next/navigation';
 import { formatTime24to12 } from '@/lib/formatters';
 export default async function DoctorDetailPage({ params }) {
   const { id } = await params;
@@ -18,6 +16,7 @@ export default async function DoctorDetailPage({ params }) {
   if (!doctor) return <p>Doctor not found.</p>;
 
   return (
+    <div className={styles.mainContainer}>
     <main className={styles.page}>
       <div className={styles.card}>
         <h1>{doctor.name}</h1>
@@ -40,5 +39,6 @@ export default async function DoctorDetailPage({ params }) {
         ) : <p>No available slots.</p>}
       </div>
     </main>
+    </div>
   );
 }
